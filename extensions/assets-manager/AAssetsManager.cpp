@@ -28,6 +28,13 @@
 #include <stdio.h>
 #include <thread>
 
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WIN32) && (CC_TARGET_PLATFORM != CC_PLATFORM_WP8) && (CC_TARGET_PLATFORM != CC_PLATFORM_WINRT)
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <dirent.h>
+#endif
+
 #include "unzip.h"
 
 using namespace cocos2d;
@@ -74,11 +81,12 @@ struct ProgressMessage
     AAssetsManager* manager;
 };
 
+std::string AAssetsManager::s_nWritableRoot = "";
+
 // Implementation of AssetsManager
 
-AAssetsManager::AAssetsManager(const char* manifestUrl, const char* storagePath/* = "" */)
-:  _storagePath(storagePath)
-, _manifestUrl(manifestUrl)
+AAssetsManager::AAssetsManager(const std::string& manifestUrl, const std::string& storagePath/* = "" */)
+: _manifestUrl(manifestUrl)
 , _remoteManifestUrl("")
 , _remoteVersionUrl("")
 , _remoteUrl("")
@@ -91,11 +99,129 @@ AAssetsManager::AAssetsManager(const char* manifestUrl, const char* storagePath/
 , _connectionTimeout(0)
 , _isDownloading(false)
 {
+    // Init writable path
+    if (s_nWritableRoot.size() == 0) {
+        s_nWritableRoot = FileUtils::getInstance()->getWritablePath();
+        CCLOG("%s", s_nWritableRoot.c_str());
+        prependSearchPath(s_nWritableRoot);
+    }
+    
+    _eventDispatcher = Director::getInstance()->getEventDispatcher();
+    
+    _downloader = new Downloader(this);
+    setStoragePath(storagePath);
     loadManifest();
 }
 
 AAssetsManager::~AAssetsManager()
 {
+}
+
+std::string getLoadedEventName(const std::string& key)
+{
+    std::string eventName = "AM_" + key + "_Loaded";
+    return eventName;
+}
+
+const std::string& AAssetsManager::getStoragePath() const
+{
+    return _storagePath;
+}
+
+void AAssetsManager::setStoragePath(const std::string& storagePath)
+{
+// TODO Check if need to destroy old path
+    //if (_storagePath.size() > 0)
+        //destroyStoragePath();
+    
+    _storagePath = storagePath;
+    createStoragePath();
+    if (_storagePath.size() > 0)
+        prependSearchPath(_storagePath);
+}
+
+void AAssetsManager::adjustStoragePath()
+{
+    if (_storagePath.size() > 0 && _storagePath[_storagePath.size() - 1] != '/')
+    {
+        _storagePath.append("/");
+    }
+    _storagePath.insert(0, s_nWritableRoot);
+}
+
+void AAssetsManager::prependSearchPath(const std::string& path)
+{
+    std::vector<std::string> searchPaths = FileUtils::getInstance()->getSearchPaths();
+    std::vector<std::string>::iterator iter = searchPaths.begin();
+    searchPaths.insert(iter, path);
+    FileUtils::getInstance()->setSearchPaths(searchPaths);
+}
+
+void AAssetsManager::createStoragePath()
+{
+    adjustStoragePath();
+    // Check writable path existance
+    if (_storagePath.find(s_nWritableRoot) == std::string::npos)
+    {
+        CCLOG("Storage path which isn't under system writable path cannot be created.");
+        return;
+    }
+    
+    // Split the path
+    size_t start = s_nWritableRoot.size();
+    size_t found = _storagePath.find_first_of("/\\", start);
+    std::string subpath;
+    std::vector<std::string> dirs;
+    while (found != std::string::npos)
+    {
+        subpath = _storagePath.substr(start, found - start + 1);
+        if (subpath.size() > 0) dirs.push_back(subpath);
+        start = found+1;
+        found = _storagePath.find_first_of("/\\", start);
+    }
+    
+    // Remove downloaded files
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WIN32)
+    DIR *dir = NULL;
+    
+    // Create path recursively
+    subpath = s_nWritableRoot;
+    for (int i = 0; i < dirs.size(); i++) {
+        subpath += dirs[i];
+        dir = opendir (subpath.c_str());
+        if (!dir)
+        {
+            mkdir(subpath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO);
+        }
+    }
+#else
+    if ((GetFileAttributesA(_storagePath.c_str())) == INVALID_FILE_ATTRIBUTES)
+    {
+// TODO: create recursively the path on windows
+        CreateDirectoryA(_storagePath.c_str(), 0);
+    }
+#endif
+}
+
+void AAssetsManager::destroyStoragePath()
+{
+    // Delete recorded version codes.
+// TODO: deleteVersion();
+    
+// TODO: Delete recursively
+    
+    // Remove downloaded files
+#if (CC_TARGET_PLATFORM != CC_PLATFORM_WIN32)
+    std::string command = "rm -r ";
+    // Path may include space.
+    command += "\"" + _storagePath + "\"";
+    system(command.c_str());
+#else
+    string command = "rd /s /q ";
+    // Path may include space.
+    command += "\"" + _storagePath + "\"";
+    system(command.c_str());
+#endif
 }
 
 void AAssetsManager::loadManifest()
@@ -181,6 +307,9 @@ void AAssetsManager::loadManifest()
                 }
             }
         }
+        
+        // Download version and manifest file
+        _downloader->download(_remoteVersionUrl, _storagePath);
     }
 }
 
@@ -207,6 +336,60 @@ Asset AAssetsManager::parseAsset(const rapidjson::Value& json) {
     }
     
     return asset;
+}
+
+bool AAssetsManager::checkUpdate()
+{
+    if (_remoteVersionUrl.size() > 0)
+    {
+        // Download version file
+        _downloader->download(_remoteVersionUrl, _storagePath);
+    }
+    return true;
+}
+
+
+void AAssetsManager::onError(const Downloader::Error &error)
+{
+    CCLOG("%d : %s\n", error.code, error.message.c_str());
+}
+
+void AAssetsManager::onProgress(double total, double downloaded, const std::string &url, const std::string &customId)
+{
+    int percent = (downloaded / total) * 100;
+    CCLOG("Progress: %d\n", percent);
+}
+
+void AAssetsManager::onSuccess(const std::string &srcUrl, const std::string &customId, const std::string &filename)
+{
+    CCLOG("SUCCEED: %s\n", filename.c_str());
+    
+    std::string eventName = getLoadedEventName(customId);
+    EventCustom event(eventName);
+    std::string cid = customId;
+    event.setUserData(&cid);
+    _eventDispatcher->dispatchEvent(&event);
+    
+    std::string content;
+    FileUtils* fileUtils = FileUtils::getInstance();
+    if (fileUtils->isFileExist(filename))
+    {
+        // Load manifest file content
+        content = fileUtils->getStringFromFile(filename);
+        
+        CCLOG("%s", content.c_str());
+        
+        // Parse manifest file with rapid json
+        rapidjson::Document json;
+        
+        json.Parse<0>(content.c_str());
+        // Print error and exit
+        if (json.HasParseError()) {
+            std::string errorSnippet = content.substr(json.GetErrorOffset()-1, 10);
+            CCLOG("Manifest file parse error %s at <%s>\n", json.GetParseError(), errorSnippet.c_str());
+            return;
+        }
+    }
 }
 
 NS_CC_EXT_END;

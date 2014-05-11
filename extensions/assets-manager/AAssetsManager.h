@@ -31,6 +31,7 @@
 #include <mutex>
 
 #include "cocos2d.h"
+#include "Downloader.h"
 #include "extensions/ExtensionMacros.h"
 #include "json/document.h"
 
@@ -46,7 +47,7 @@ struct Asset {
 /*
  *  This class is used to auto update resources, such as pictures or scripts.
  */
-class AAssetsManager : public Ref
+class AAssetsManager : public Ref, DownloaderDelegateProtocol
 {
 public:
     enum class ErrorCode
@@ -72,7 +73,10 @@ public:
         UNCOMPRESS,
     };
     
-    AAssetsManager(const char* manifestUrl = NULL, const char* storagePath = "");
+    //! The root of writable path
+    static std::string s_nWritableRoot;
+    
+    AAssetsManager(const std::string& manifestUrl = NULL, const std::string& storagePath = "");
     /**
      * @js NA
      * @lua NA
@@ -81,74 +85,78 @@ public:
     
     /* @brief To access within scripting environment
      */
-    static AAssetsManager* create(const char* manifestUrl, const char* storagePath = "");
+    static AAssetsManager* create(const std::string& manifestUrl, const std::string& storagePath = "");
     
     /* @brief Check out if there is a new version of manifest.
      *        You may use this method before updating, then let user determine whether
      *        he wants to update resources.
      */
-    //virtual bool checkUpdate();
+    virtual bool checkUpdate();
     
     //virtual void update();
     
     /* @brief Gets url of a asset for the given key.
      */
-    const char* get(const char* key) const;
+    const std::string& get(const std::string& key) const;
+    
+    /* @brief Gets loaded event name for the resource of the given key
+     */
+    std::string getLoadedEventName(const std::string& key);
     
     /* @brief Gets storage path.
      */
-    const char* getStoragePath() const;
+    const std::string& getStoragePath() const;
     
     /* @brief Sets storage path.
      *
      * @param storagePath The path to store downloaded resources.
      * @warm The path should be a valid path.
      */
-    void setStoragePath(const char* storagePath);
+    void setStoragePath(const std::string& storagePath);
     
     /* @brief Gets url of manifest.
      */
-    const char* getManifestUrl() const;
+    const std::string& getManifestUrl() const;
     
     /* @brief Sets package url.
      */
-    void setManifestUrl(const char* manifestUrl);
+    void setManifestUrl(const std::string& manifestUrl);
     
     /* @brief Gets version file url.
      */
-    const char* getVersionFileUrl() const;
+    const std::string& getVersionFileUrl() const;
     
     /* @brief Sets version file url.
      */
-    void setVersionFileUrl(const char* versionFileUrl);
+    void setVersionFileUrl(const std::string& versionFileUrl);
     
     /* @brief Gets remote package url.
      */
-    const char* getRemoteRootUrl() const;
+    const std::string& getRemoteRootUrl() const;
     
     /* @brief Gets local manifest version.
      */
-    const char* getLocalManifestVersion() const;
+    const std::string& getLocalManifestVersion() const;
     
     /* @brief Gets local version for the given group.
      */
-    const char* getLocalGroupVersion(int group) const;
+    const std::string& getLocalGroupVersion(int group) const;
     
     /* @brief Gets local engine version.
      */
-    const char* getLocalEngineVersion() const;
+    const std::string& getLocalEngineVersion() const;
     
     /* @brief Gets remote manifest version.
      */
-    const char* getRemoteManifestVersion() const;
+    const std::string& getRemoteManifestVersion() const;
     
     /* @brief Gets remote version for the given group.
      */
-    const char* getRemoteGroupVersion(int group) const;
+    const std::string& getRemoteGroupVersion(int group) const;
     
     /* @brief Gets remote engine version.
      */
-    const char* getRemoteEngineVersion() const;
+    const std::string& getRemoteEngineVersion() const;
     
     /** @brief Sets connection time out in seconds
      */
@@ -159,18 +167,37 @@ public:
     unsigned int getConnectionTimeout();
     
     
-    /* downloadAndUncompress is the entry of a new thread
+    /* @brief Call back function for error
+     @param errorCode Type of error
+     * @js NA
+     * @lua NA
      */
-    friend int assetsManagerProgressFunc(void *, double, double, double, double);
+    virtual void onError(const Downloader::Error &error);
+    
+    /** @brief Call back function for recording downloading percent
+     @param percent How much percent downloaded
+     @warning    This call back function just for recording downloading percent.
+     AssetsManager will do some other thing after downloading, you should
+     write code in onSuccess() after downloading.
+     * @js NA
+     * @lua NA
+     */
+    virtual void onProgress(double total, double downloaded, const std::string &url, const std::string &customId);
+    
+    /** @brief Call back function for success
+     * @js NA
+     * @lua NA
+     */
+    virtual void onSuccess(const std::string &srcUrl, const std::string &customId, const std::string &filename);
     
 protected:
     void loadManifest();
     Asset parseAsset(const rapidjson::Value& json);
     bool downLoad();
-    void checkStoragePath();
+    void adjustStoragePath();
     bool uncompress();
-    bool createDirectory(const char *path);
-    void setSearchPath();
+    bool createDirectory(const std::string& path);
+    void prependSearchPath(const std::string& path);
     void downloadAndUncompress();
     
 private:
@@ -183,6 +210,9 @@ private:
     void destroyStoragePath();
     
 private:
+    
+    EventDispatcher *_eventDispatcher;
+    
     //! The path to store downloaded resources.
     std::string _storagePath;
     
@@ -229,7 +259,10 @@ private:
     unsigned int _connectionTimeout;
     
     //! CURL ref
-    void *_curl;
+    void*_curl;
+    
+    //! Downloader
+    Downloader* _downloader;
     
     //! Indicate whether AssetsManager is downloading assets
     bool _isDownloading;
