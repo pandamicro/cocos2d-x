@@ -36,17 +36,46 @@
 
 NS_CC_EXT_BEGIN
 
-struct Asset {
-    std::string md5;
-    std::string path;
-    std::string group;
-    bool updating;
-};
-
 class CC_DLL Manifest
 {
 public:
+    
+    enum DiffType {
+        ADDED,
+        DELETED,
+        MODIFIED
+    };
+    
+    struct Asset {
+        std::string md5;
+        std::string path;
+        std::string group;
+        bool updating;
+    };
+    
+    struct AssetDiff {
+        Asset *asset;
+        DiffType type;
+    };
+    
     Manifest(const std::string& manifestUrl);
+    
+    void parse(const std::string& manifestUrl);
+    
+    bool isVersionLoaded() const;
+    bool isLoaded() const;
+    
+    bool versionEquals(const Manifest *b) const;
+    
+    std::map<std::string, AssetDiff> genDiff(const Manifest *b) const;
+    
+    /* @brief Gets remote package url.
+     */
+    const std::string& getPackageUrl() const;
+    
+    /* @brief Sets remote package url.
+     */
+    void setPackageUrl(const std::string& packageUrl);
     
     /* @brief Gets remote manifest file url.
      */
@@ -71,6 +100,10 @@ public:
     /* @brief Gets all groups.
      */
     const std::vector<std::string>& getGroups() const;
+    
+    /* @brief Gets all groups version.
+     */
+    const std::map<std::string, std::string>& getGroupVerions() const;
     
     /* @brief Gets version for the given group.
      */
@@ -100,6 +133,9 @@ private:
     bool _loaded;
     
     FileUtils *_fileUtils;
+    
+    //! The remote package url
+    std::string _packageUrl;
     
     //! The remote path of manifest file
     std::string _remoteManifestUrl;

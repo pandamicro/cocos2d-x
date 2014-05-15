@@ -29,6 +29,7 @@ using namespace cocos2d;
 NS_CC_EXT_BEGIN;
 
 #define KEY_VERSION             "version"
+#define KEY_PACKAGE_URL         "packageUrl"
 #define KEY_MANIFEST_URL        "remoteManifestUrl"
 #define KEY_VERSION_URL         "remoteVersionUrl"
 #define KEY_GROUP_VERSIONS      "groupVersions"
@@ -52,11 +53,118 @@ Manifest::Manifest(const std::string& manifestUrl)
 {
     // Init variables
     _fileUtils = FileUtils::getInstance();
+    if (manifestUrl.size() > 0)
+        parse(manifestUrl);
+}
+
+void Manifest::parse(const std::string& manifestUrl)
+{
     rapidjson::Document json = parseJSON(manifestUrl);
     if (json.MemberonBegin() != json.MemberonEnd())
     {
         loadManifest(json);
     }
+}
+
+bool Manifest::isVersionLoaded() const
+{
+    return _versionLoaded;
+}
+bool Manifest::isLoaded() const
+{
+    return _loaded;
+}
+
+bool Manifest::versionEquals(const Manifest *b) const
+{
+    // Check manifest version
+    if (_version != b->getManifestVersion())
+    {
+        return false;
+    }
+    // Check group versions
+    else
+    {
+        std::vector<std::string> bGroups = b->getGroups();
+        std::map<std::string, std::string> bGroupVer = b->getGroupVerions();
+        // Check group size
+        if (bGroups.size() != _groups.size())
+            return false;
+        
+        // Check groups version
+        for (int i = 0; i < _groups.size(); i++) {
+            std::string gid =_groups[i];
+            // Check group name
+            if (gid != bGroups[i])
+                return false;
+            // Check group version
+            if (_groupVer.at(gid) != bGroupVer.at(gid))
+                return false;
+        }
+    }
+    return true;
+}
+
+std::map<std::string, Manifest::AssetDiff> Manifest::genDiff(const Manifest *b) const
+{
+    std::map<std::string, AssetDiff> diff_map;
+    std::map<std::string, Asset> bAssets = b->getAssets();
+    
+    std::string key;
+    Asset valueA;
+    Asset valueB;
+    std::map<std::string, Asset>::const_iterator valueIt, it;
+    for (it = _assets.begin(); it != _assets.end(); it++)
+    {
+        key = it->first;
+        valueA = it->second;
+        
+        // Deleted
+        valueIt = bAssets.find(key);
+        if (valueIt == bAssets.cend()) {
+            AssetDiff diff;
+            diff.asset = &valueA;
+            diff.type = DELETED;
+            diff_map.emplace(key, diff);
+        }
+        
+        // Modified
+        valueB = valueIt->second;
+        if (valueA.md5 != valueB.md5) {
+            AssetDiff diff;
+            diff.asset = &valueB;
+            diff.type = MODIFIED;
+            diff_map.emplace(key, diff);
+        }
+    }
+    
+    for (it = bAssets.begin(); it != bAssets.end(); it++)
+    {
+        key = it->first;
+        valueB = it->second;
+        
+        // Added
+        valueIt = _assets.find(key);
+        if (valueIt == _assets.cend()) {
+            AssetDiff diff;
+            diff.asset = &valueB;
+            diff.type = ADDED;
+            diff_map.emplace(key, diff);
+        }
+    }
+    
+    return diff_map;
+}
+
+
+const std::string& Manifest::getPackageUrl() const
+{
+    return _packageUrl;
+}
+
+void Manifest::setPackageUrl(const std::string& packageUrl)
+{
+    _packageUrl = packageUrl;
 }
 
 const std::string& Manifest::getManifestFileUrl() const
@@ -89,6 +197,11 @@ const std::vector<std::string>& Manifest::getGroups() const
     return _groups;
 }
 
+const std::map<std::string, std::string>& Manifest::getGroupVerions() const
+{
+    return _groupVer;
+}
+
 const std::string& Manifest::getGroupVersion(const std::string &group) const
 {
     return _groupVer.at(group);
@@ -99,12 +212,12 @@ const std::string& Manifest::getEngineVersion() const
     return _engineVer;
 }
 
-const std::map<std::string, Asset>& Manifest::getAssets() const
+const std::map<std::string, Manifest::Asset>& Manifest::getAssets() const
 {
     return _assets;
 }
 
-const Asset& Manifest::getAsset(const std::string &key) const
+const Manifest::Asset& Manifest::getAsset(const std::string &key) const
 {
     return _assets.at(key);
 }
@@ -151,7 +264,7 @@ void Manifest::clear()
     }
 }
 
-Asset Manifest::parseAsset(const rapidjson::Value& json)
+Manifest::Asset Manifest::parseAsset(const rapidjson::Value& json)
 {
     Asset asset;
     asset.updating = false;
@@ -231,6 +344,12 @@ void Manifest::loadManifest(const rapidjson::Document &json)
     clear();
     
     loadVersion(json);
+    
+    // Retrieve package url
+    if( json.HasMember(KEY_PACKAGE_URL) && json[KEY_PACKAGE_URL].IsString() )
+    {
+        _packageUrl = json[KEY_PACKAGE_URL].GetString();
+    }
     
     // Retrieve all compressed files
 // TODO
