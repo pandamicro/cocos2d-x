@@ -48,17 +48,15 @@ static size_t curlWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata
 
 int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded)
 {
-    static int downloaded = 0;
-    
-    if (downloaded != nowDownloaded)
+    if (ptr->downloaded != nowDownloaded)
     {
-        downloaded = nowDownloaded;
+        ptr->downloaded = nowDownloaded;
         std::string url = ptr->url;
         std::string customId = ptr->customId;
         DownloaderDelegateProtocol* delegate = ptr->downloader->getDelegate();
-        Director::getInstance()->getScheduler()->performFunctionInCocosThread([url, customId, delegate, totalToDownload]{
+        Director::getInstance()->getScheduler()->performFunctionInCocosThread([url, customId, delegate, totalToDownload, nowDownloaded]{
             if (delegate)
-                delegate->onProgress(totalToDownload, downloaded, url, customId);
+                delegate->onProgress(totalToDownload, nowDownloaded, url, customId);
         });
     }
     
@@ -68,7 +66,19 @@ int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, 
 
 Downloader::Downloader(DownloaderDelegateProtocol* delegate)
 : _delegate(delegate)
+, _connectionTimeout(0)
 {
+}
+
+int Downloader::getConnectionTimeout()
+{
+    return _connectionTimeout;
+}
+
+void Downloader::setConnectionTimeout(int timeout)
+{
+    if (timeout >= 0)
+        _connectionTimeout = timeout;
 }
 
 void Downloader::notifyError(ErrorCode code, const std::string &msg/* ="" */, const std::string &customId/* ="" */)
@@ -159,6 +169,7 @@ void Downloader::download(const std::string &srcUrl, FILE *fp, const std::string
     data.customId = customId;
     data.url = srcUrl;
     data.downloader = this;
+    data.downloaded = 0;
     
     void *curl = curl_easy_init();
     if (!curl)
@@ -175,6 +186,7 @@ void Downloader::download(const std::string &srcUrl, FILE *fp, const std::string
     curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
     curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
     curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
+    if (_connectionTimeout) curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, _connectionTimeout);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
     curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);

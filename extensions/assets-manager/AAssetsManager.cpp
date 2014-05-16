@@ -44,7 +44,12 @@ NS_CC_EXT_BEGIN;
 #define VERSION_FILENAME        "version.manifest"
 #define MANIFEST_FILENAME       "project.manifest"
 
-#define FINISH_UPDATE_EVENT     "AM_Loaded"
+// Events
+#define NO_LOCAL_MANIFEST           "AM_No_Local_Manifest"
+#define ALREADY_UP_TO_DATE_EVENT    "AM_Already_Up_To_Date"
+#define FINISH_UPDATE_EVENT         "AM_Update_Finished"
+#define NEW_VERSION_EVENT           "AM_New_Version_Found"
+#define UPDATING_PERCENT_EVENT      "AM_Updating"
 
 #define BUFFER_SIZE         8192
 #define MAX_FILENAME        512
@@ -79,10 +84,7 @@ std::string AAssetsManager::s_nWritableRoot = "";
 AAssetsManager::AAssetsManager(const std::string& manifestUrl, const std::string& storagePath/* = "" */)
 : _waitToUpdate(false)
 , _manifestUrl(manifestUrl)
-, _manifestLoaded(false)
-, _curl(nullptr)
-, _connectionTimeout(0)
-, _isDownloading(false)
+, _assets(nullptr)
 {
     // Init writable path
     if (s_nWritableRoot.size() == 0) {
@@ -99,21 +101,7 @@ AAssetsManager::AAssetsManager(const std::string& manifestUrl, const std::string
     _downloader = new Downloader(this);
     setStoragePath(storagePath);
     
-    std::string cachedManifest = _storagePath + MANIFEST_FILENAME;
-    // Prefer to use the cached manifest file, if not found use user configured manifest file
-    // Prepend storage path to avoid multi package conflict issue
-    if (_fileUtils->isFileExist(cachedManifest))
-        _localManifest = new Manifest(cachedManifest);
-    
-    // Fail to found cached manifest file
-    if (!_localManifest) {
-        _localManifest = new Manifest(_manifestUrl);
-    }
-    // Fail to load cached manifest file
-    else if (!_localManifest->isLoaded()) {
-        destroyFile(cachedManifest);
-        _localManifest->parse(_manifestUrl);
-    }
+    loadManifest(manifestUrl);
     
     // Download version file
     update();
@@ -121,6 +109,53 @@ AAssetsManager::AAssetsManager(const std::string& manifestUrl, const std::string
 
 AAssetsManager::~AAssetsManager()
 {
+}
+
+void AAssetsManager::setLocalManifest(Manifest *manifest)
+{
+    _localManifest = manifest;
+    // An alias to assets
+    _assets = &(_localManifest->getAssets());
+    
+    // Add search paths
+    _localManifest->prependSearchPaths();
+}
+
+void AAssetsManager::loadManifest(const std::string& manifestUrl)
+{
+    std::string cachedManifest = _storagePath + MANIFEST_FILENAME;
+    // Prefer to use the cached manifest file, if not found use user configured manifest file
+    // Prepend storage path to avoid multi package conflict issue
+    if (_fileUtils->isFileExist(cachedManifest))
+        setLocalManifest(new Manifest(cachedManifest));
+    
+    // Fail to found cached manifest file
+    if (!_localManifest) {
+        setLocalManifest(new Manifest(_manifestUrl));
+    }
+    // Fail to load cached manifest file
+    else if (!_localManifest->isLoaded()) {
+        destroyFile(cachedManifest);
+        _localManifest->parse(_manifestUrl);
+    }
+    
+    // Fail to load local manifest
+    if (!_localManifest->isLoaded())
+    {
+        EventCustom event(NO_LOCAL_MANIFEST);
+        std::string url = _manifestUrl;
+        event.setUserData(&url);
+        _eventDispatcher->dispatchEvent(&event);
+    }
+}
+
+std::string AAssetsManager::get(const std::string& key) const
+{
+    auto it = _assets->find(key);
+    if (it != _assets->cend()) {
+        return _storagePath + it->second.path;
+    }
+    else return "";
 }
 
 std::string AAssetsManager::getLoadedEventName(const std::string& key)
@@ -136,15 +171,14 @@ const std::string& AAssetsManager::getStoragePath() const
 
 void AAssetsManager::setStoragePath(const std::string& storagePath)
 {
-// TODO Check if need to destroy old path
-    //if (_storagePath.size() > 0)
-        //destroyStoragePath();
+    if (_storagePath.size() > 0)
+        destroyDirectory(_storagePath);
     
     _storagePath = storagePath;
     adjustPath(_storagePath);
     createDirectory(_storagePath);
-    if (_storagePath.size() > 0)
-        prependSearchPath(_storagePath);
+    //if (_storagePath.size() > 0)
+        //prependSearchPath(_storagePath);
 }
 
 void AAssetsManager::adjustPath(std::string &path)
@@ -260,14 +294,29 @@ void AAssetsManager::destroyFile(const std::string &path)
 
 AAssetsManager::UpdateState AAssetsManager::updateState()
 {
-    if (_updateState == UNKNOWN || _updateState == NEED_UPDATE || _updateState == UP_TO_DATE || _updateState == UPDATING) {
+    if (_updateState == UNKNOWN || _updateState == NEED_UPDATE || _updateState == UP_TO_DATE || _updateState == UPDATING)
+    {
         return _updateState;
+    }
+    // A special case
+    else if (_remoteManifest && _remoteManifest->isVersionLoaded())
+    {
+        return UPDATING;
     }
     else return CHECKING;
 }
 
 void AAssetsManager::checkUpdate()
 {
+    if (!_localManifest->isLoaded())
+    {
+        EventCustom event(NO_LOCAL_MANIFEST);
+        std::string url = _manifestUrl;
+        event.setUserData(&url);
+        _eventDispatcher->dispatchEvent(&event);
+        return;
+    }
+    
     switch (_updateState) {
         case UNKNOWN:
         case PREDOWNLOAD_VERSION:
@@ -291,9 +340,9 @@ void AAssetsManager::checkUpdate()
         case VERSION_LOADED:
         {
             if (!_remoteManifest)
-                _remoteManifest = new Manifest(VERSION_FILENAME);
+                _remoteManifest = new Manifest(_storagePath + VERSION_FILENAME);
             else
-                _remoteManifest->parse(VERSION_FILENAME);
+                _remoteManifest->parse(_storagePath + VERSION_FILENAME);
             
             if (!_remoteManifest->isVersionLoaded())
             {
@@ -304,17 +353,25 @@ void AAssetsManager::checkUpdate()
             else
             {
                 if (_localManifest->versionEquals(_remoteManifest))
+                {
                     _updateState = UP_TO_DATE;
+                    EventCustom event(ALREADY_UP_TO_DATE_EVENT);
+                    event.setUserData(this);
+                    _eventDispatcher->dispatchEvent(&event);
+                }
                 else
                 {
+                    _updateState = NEED_UPDATE;
+                    EventCustom newVerEvent(NEW_VERSION_EVENT);
+                    newVerEvent.setUserData(this);
+                    _eventDispatcher->dispatchEvent(&newVerEvent);
+                    
                     // Wait to update so continue the process
                     if (_waitToUpdate)
                     {
                         _updateState = PREDOWNLOAD_MANIFEST;
                         checkUpdate();
                     }
-                    // Otherwise just setup the state
-                    else _updateState = NEED_UPDATE;
                 }
             }
         }
@@ -339,9 +396,9 @@ void AAssetsManager::checkUpdate()
         case MANIFEST_LOADED:
         {
             if (!_remoteManifest)
-                _remoteManifest = new Manifest(MANIFEST_FILENAME);
+                _remoteManifest = new Manifest(_storagePath + MANIFEST_FILENAME);
             else
-                _remoteManifest->parse(MANIFEST_FILENAME);
+                _remoteManifest->parse(_storagePath + MANIFEST_FILENAME);
             
             if (!_remoteManifest->isLoaded())
             {
@@ -351,10 +408,19 @@ void AAssetsManager::checkUpdate()
             else
             {
                 if (_localManifest->versionEquals(_remoteManifest))
+                {
                     _updateState = UP_TO_DATE;
+                    EventCustom event(ALREADY_UP_TO_DATE_EVENT);
+                    event.setUserData(this);
+                    _eventDispatcher->dispatchEvent(&event);
+                }
                 else
                 {
                     _updateState = NEED_UPDATE;
+                    EventCustom newVerEvent(NEW_VERSION_EVENT);
+                    newVerEvent.setUserData(this);
+                    _eventDispatcher->dispatchEvent(&newVerEvent);
+                    
                     if (_waitToUpdate)
                     {
                         update();
@@ -370,6 +436,15 @@ void AAssetsManager::checkUpdate()
 
 void AAssetsManager::update()
 {
+    if (!_localManifest->isLoaded())
+    {
+        EventCustom event(NO_LOCAL_MANIFEST);
+        std::string url = _manifestUrl;
+        event.setUserData(&url);
+        _eventDispatcher->dispatchEvent(&event);
+        return;
+    }
+    
     switch (_updateState) {
         case NEED_UPDATE:
         {
@@ -389,12 +464,16 @@ void AAssetsManager::update()
                 if (diff_map.size() == 0)
                 {
                     _updateState = UP_TO_DATE;
+                    EventCustom event(ALREADY_UP_TO_DATE_EVENT);
+                    event.setUserData(this);
+                    _eventDispatcher->dispatchEvent(&event);
                 }
                 else
                 {
                     _updateState = UPDATING;
                     // UPDATE
                     _downloadUnits.clear();
+                    _totalToDownload = 0;
                     std::string packageUrl = _remoteManifest->getPackageUrl();
                     for (auto it = diff_map.begin(); it != diff_map.end(); it++) {
                         Manifest::AssetDiff diff = it->second;
@@ -415,7 +494,9 @@ void AAssetsManager::update()
                             _downloadUnits.emplace(unit.customId, unit);
                         }
                     }
-                    _downloader->batchDownload(_downloadUnits);
+                    _totalToDownload = (int)_downloadUnits.size();
+                    auto t = std::thread(&Downloader::batchDownload, _downloader, _downloadUnits);
+                    t.detach();
                 }
             }
             
@@ -479,13 +560,24 @@ void AAssetsManager::onSuccess(const std::string &srcUrl, const std::string &cus
         // Found unit and delete it
         if (unitIt != _downloadUnits.end())
         {
+            // Remove from download unit list
             _downloadUnits.erase(unitIt);
+            
+            EventCustom updateEvent(UPDATING_PERCENT_EVENT);
+            double percent = 100 * (_totalToDownload - _downloadUnits.size()) / _totalToDownload;
+            updateEvent.setUserData(&percent);
+            time_t t = time(0);
+            CCLOG("TOTAL DOWNLOAD PROCESS (%ld) : %f\n", t, percent);
+            _eventDispatcher->dispatchEvent(&updateEvent);
         }
         // Finish check
         if (_downloadUnits.size() == 0)
         {
+            // Every thing is correctly downloaded, swap the localManifest
+            setLocalManifest(_remoteManifest);
+            
             EventCustom finishEvent(FINISH_UPDATE_EVENT);
-            event.setUserData(this);
+            finishEvent.setUserData(this);
             _eventDispatcher->dispatchEvent(&finishEvent);
         }
     }

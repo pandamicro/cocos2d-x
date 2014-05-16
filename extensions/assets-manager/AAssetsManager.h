@@ -95,6 +95,9 @@ public:
      */
     static AAssetsManager* create(const std::string& manifestUrl, const std::string& storagePath = "");
     
+    
+    static std::string getLoadedEventName(const std::string& key);
+    
     /* @brief Check out if there is a new version of manifest.
      *        You may use this method before updating, then let user determine whether
      *        he wants to update resources.
@@ -107,11 +110,7 @@ public:
     
     /* @brief Gets url of a asset for the given key.
      */
-    const std::string& get(const std::string& key) const;
-    
-    /* @brief Gets loaded event name for the resource of the given key
-     */
-    std::string getLoadedEventName(const std::string& key);
+    std::string get(const std::string& key) const;
     
     /* @brief Gets storage path.
      */
@@ -123,58 +122,6 @@ public:
      * @warm The path should be a valid path.
      */
     void setStoragePath(const std::string& storagePath);
-    
-    /* @brief Gets url of manifest.
-     */
-    const std::string& getManifestUrl() const;
-    
-    /* @brief Sets package url.
-     */
-    void setManifestUrl(const std::string& manifestUrl);
-    
-    /* @brief Gets version file url.
-     */
-    const std::string& getVersionFileUrl() const;
-    
-    /* @brief Sets version file url.
-     */
-    void setVersionFileUrl(const std::string& versionFileUrl);
-    
-    /* @brief Gets remote package url.
-     */
-    const std::string& getRemoteRootUrl() const;
-    
-    /* @brief Gets local manifest version.
-     */
-    const std::string& getLocalManifestVersion() const;
-    
-    /* @brief Gets local version for the given group.
-     */
-    const std::string& getLocalGroupVersion(int group) const;
-    
-    /* @brief Gets local engine version.
-     */
-    const std::string& getLocalEngineVersion() const;
-    
-    /* @brief Gets remote manifest version.
-     */
-    const std::string& getRemoteManifestVersion() const;
-    
-    /* @brief Gets remote version for the given group.
-     */
-    const std::string& getRemoteGroupVersion(int group) const;
-    
-    /* @brief Gets remote engine version.
-     */
-    const std::string& getRemoteEngineVersion() const;
-    
-    /** @brief Sets connection time out in seconds
-     */
-    void setConnectionTimeout(unsigned int timeout);
-    
-    /** @brief Gets connection time out in secondes
-     */
-    unsigned int getConnectionTimeout();
     
     
     /* @brief Call back function for error
@@ -201,11 +148,12 @@ public:
     virtual void onSuccess(const std::string &srcUrl, const std::string &customId);
     
 protected:
-    void loadManifest();
-    bool uncompress();
+    void loadManifest(const std::string& manifestUrl);
+    void setLocalManifest(Manifest *manifest);
     void adjustPath(std::string &path);
     void prependSearchPath(const std::string &path);
-    void downloadAndUncompress();
+    //bool uncompress();
+    //void downloadAndUncompress();
     
 private:
     
@@ -226,8 +174,9 @@ private:
     
     std::map<std::string, Downloader::DownloadUnit> _downloadUnits;
     
-    //! The url of the package
-    std::string _packageUrl;
+    int _totalToDownload;
+    
+    const std::map<std::string, Manifest::Asset> *_assets;
     
     //! The path to store downloaded resources.
     std::string _storagePath;
@@ -241,20 +190,8 @@ private:
     //! Remote manifest
     Manifest *_remoteManifest;
     
-    //! Indicate whether the manifest file have been parsed
-    bool _manifestLoaded;
-    
-    //! Time out configuration for connection
-    unsigned int _connectionTimeout;
-    
-    //! CURL ref
-    void*_curl;
-    
     //! Downloader
     Downloader* _downloader;
-    
-    //! Indicate whether AssetsManager is downloading assets
-    bool _isDownloading;
 };
 
 NS_CC_EXT_END;
