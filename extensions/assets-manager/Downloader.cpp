@@ -28,6 +28,7 @@
 #include <curl/easy.h>
 #include <stdio.h>
 #include <thread>
+#include <future>
 
 using namespace cocos2d;
 
@@ -37,8 +38,6 @@ NS_CC_EXT_BEGIN;
 #define MAX_FILENAME        512
 #define LOW_SPEED_LIMIT     1L
 #define LOW_SPEED_TIME      5L
-
-//const std::regex REGEX_FILENAME("([\\w\\d\\._\\-]+)\\.([\\w\\d])$");
 
 static size_t curlWriteFunc(void *ptr, size_t size, size_t nmemb, void *userdata)
 {
@@ -69,22 +68,7 @@ int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, 
 
 Downloader::Downloader(DownloaderDelegateProtocol* delegate)
 : _delegate(delegate)
-, _curl(nullptr)
 {
-    init();
-}
-
-bool Downloader::init()
-{
-    if (!_curl) {
-        _curl = curl_easy_init();
-        if (!_curl)
-        {
-            CCLOG("can not init curl");
-            return false;
-        }
-    }
-    return true;
 }
 
 void Downloader::notifyError(ErrorCode code, const std::string &msg/* ="" */, const std::string &customId/* ="" */)
@@ -99,88 +83,104 @@ void Downloader::notifyError(ErrorCode code, const std::string &msg/* ="" */, co
     });
 }
 
-bool Downloader::checkStoragePath(const std::string &storagePath)
+std::string Downloader::getFileNameFormUrl(const std::string &srcUrl)
 {
-    size_t l = storagePath.size();
-    if (l > 0 && storagePath[l - 1] != '/')
-    {
-        return false;
-    }
-    return true;
+    // Find file name and file extension
+    std::string filename;
+    unsigned long found = srcUrl.find_last_of("/\\");
+    if (found != std::string::npos)
+        filename = srcUrl.substr(found+1);
+    return filename;
 }
 
-void Downloader::downloadAsync(const std::string &srcUrl, const std::string &storagePath, const std::string &customId/* = ""*/, const std::string &rename/* = ""*/)
+FILE *Downloader::prepareDownload(const std::string &srcUrl, const std::string &storagePath, const std::string &customId)
 {
+    FILE *fp = nullptr;
+    
     Error err;
     err.customId = customId;
     // Asserts
-    if (!_curl)
-    {
-        err.code = ErrorCode::CURL_UNINIT;
-        if (this->_delegate) this->_delegate->onError(err);
-        return;
-    }
-    if (!checkStoragePath(storagePath))
-    {
-        err.code = ErrorCode::INVALID_STORAGE_PATH;
-        if (this->_delegate) this->_delegate->onError(err);
-        return;
-    }
-    
-    // Find file name and file extension
-    std::string filename = rename;
+    std::string filename = getFileNameFormUrl(srcUrl);
     if (filename.size() == 0)
     {
-        unsigned long found = srcUrl.find_last_of("/\\");
-        if (found != std::string::npos)
-            filename = srcUrl.substr(found+1);
-        if (filename.size() == 0)
-        {
-            err.code = ErrorCode::INVALID_URL;
-            err.message = "Invalid url or filename not exist error: " + srcUrl;
-            if (this->_delegate) this->_delegate->onError(err);
-            return;
-        }
-        //std::smatch m;
-        //std::regex_search(url, m, REGEX_FILENAME);
-        //std::string filename = m.str();
+        err.code = ErrorCode::INVALID_URL;
+        err.message = "Invalid url or filename not exist error: " + srcUrl;
+        if (this->_delegate) this->_delegate->onError(err);
+        return fp;
     }
     
-    auto t = std::thread(&Downloader::download, this, srcUrl, storagePath, filename, customId);
-    t.detach();
-}
-
-void Downloader::download(const std::string &srcUrl, const std::string &storagePath, const std::string &filename, const std::string &customId)
-{
     // Create a file to save package.
-    const std::string outFileName = storagePath + filename;
-    FILE *fp = fopen(outFileName.c_str(), "wb");
+    const std::string outFileName = storagePath;
+    fp = fopen(outFileName.c_str(), "wb");
     if (!fp)
     {
-        std::string msg = "Can not create file " + outFileName;
-        this->notifyError(ErrorCode::CREATE_FILE, msg, customId);
-        return;
+        err.code = ErrorCode::CREATE_FILE;
+        err.message = "Can not create file " + outFileName;
+        if (this->_delegate) this->_delegate->onError(err);
     }
     
+    return fp;
+}
+
+void Downloader::downloadAsync(const std::string &srcUrl, const std::string &storagePath, const std::string &customId/* = ""*/)
+{
+    FILE *fp = prepareDownload(srcUrl, storagePath, customId);
+    if (fp != nullptr)
+    {
+        auto t = std::thread(&Downloader::download, this, srcUrl, fp, customId);
+        t.detach();
+    }
+}
+
+void Downloader::downloadSync(const std::string &srcUrl, const std::string &storagePath, const std::string &customId/* = ""*/)
+{
+    FILE *fp = prepareDownload(srcUrl, storagePath, customId);
+    if (fp != nullptr)
+    {
+        download(srcUrl, fp, customId);
+    }
+}
+
+void Downloader::batchDownload(const std::map<std::string, Downloader::DownloadUnit> &units)
+{
+    for (auto it = units.cbegin(); it != units.cend(); it++) {
+        DownloadUnit unit = it->second;
+        std::string srcUrl = unit.srcUrl;
+        std::string storagePath = unit.storagePath;
+        std::string customId = unit.customId;
+        
+        auto future = std::async(&Downloader::downloadSync, this, srcUrl, storagePath, customId);
+    }
+}
+
+void Downloader::download(const std::string &srcUrl, FILE *fp, const std::string &customId)
+{
     ProgressData data;
     data.customId = customId;
     data.url = srcUrl;
     data.downloader = this;
     
+    void *curl = curl_easy_init();
+    if (!curl)
+    {
+        this->notifyError(ErrorCode::CURL_UNINIT, "Can not init curl");
+        return;
+    }
+    
     // Download pacakge
     CURLcode res;
-    curl_easy_setopt(_curl, CURLOPT_URL, srcUrl.c_str());
-    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, curlWriteFunc);
-    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, fp);
-    curl_easy_setopt(_curl, CURLOPT_NOPROGRESS, false);
-    curl_easy_setopt(_curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
-    curl_easy_setopt(_curl, CURLOPT_PROGRESSDATA, &data);
-    curl_easy_setopt(_curl, CURLOPT_NOSIGNAL, 1L);
-    curl_easy_setopt(_curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
-    curl_easy_setopt(_curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
+    curl_easy_setopt(curl, CURLOPT_URL, srcUrl.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlWriteFunc);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+    curl_easy_setopt(curl, CURLOPT_NOPROGRESS, false);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, downloadProgressFunc);
+    curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, &data);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, LOW_SPEED_LIMIT);
+    curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, LOW_SPEED_TIME);
     
-    res = curl_easy_perform(_curl);
-    curl_easy_cleanup(_curl);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
     if (res != 0)
     {
         this->notifyError(ErrorCode::NETWORK, "Error when download file", customId);
@@ -188,9 +188,9 @@ void Downloader::download(const std::string &srcUrl, const std::string &storageP
         return;
     }
     
-    Director::getInstance()->getScheduler()->performFunctionInCocosThread([filename, srcUrl, customId, this]{
+    Director::getInstance()->getScheduler()->performFunctionInCocosThread([srcUrl, customId, this]{
         if (this->_delegate)
-            this->_delegate->onSuccess(srcUrl, customId, filename);
+            this->_delegate->onSuccess(srcUrl, customId);
     });
     
     fclose(fp);
