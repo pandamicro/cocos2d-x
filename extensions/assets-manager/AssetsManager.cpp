@@ -47,9 +47,6 @@ NS_CC_EXT_BEGIN;
 // Events
 #define UPDATING_EVENT              "_Updating_Event"
 #define NO_LOCAL_MANIFEST           "_No_Local_Manifest"
-//#define ALREADY_UP_TO_DATE_EVENT    "_Already_Up_To_Date"
-//#define FINISH_UPDATE_EVENT         "_Update_Finished"
-//#define NEW_VERSION_EVENT           "_New_Version_Found"
 #define UPDATING_PERCENT_EVENT      "_Updating_Percent"
 
 #define BUFFER_SIZE         8192
@@ -76,10 +73,14 @@ std::string AssetsManager::s_nWritableRoot = "";
 
 // Implementation of AssetsManager
 
-AssetsManager::AssetsManager(const std::string &managerId, const std::string& manifestUrl, const std::string& storagePath/* = "" */)
+AssetsManager::AssetsManager(const std::string &managerId, const std::string& manifestUrl, const std::string& storagePath)
 : _managerId(managerId)
+, _updateState(UNKNOWN)
 , _waitToUpdate(false)
+, _totalToDownload(0)
+, _totalWaitToDownload(0)
 , _manifestUrl(manifestUrl)
+, _storagePath("")
 , _assets(nullptr)
 , _localManifest(nullptr)
 , _remoteManifest(nullptr)
@@ -87,7 +88,6 @@ AssetsManager::AssetsManager(const std::string &managerId, const std::string& ma
     // Init writable path
     if (s_nWritableRoot.size() == 0) {
         s_nWritableRoot = FileUtils::getInstance()->getWritablePath();
-        CCLOG("%s", s_nWritableRoot.c_str());
         prependSearchPath(s_nWritableRoot);
     }
     
@@ -99,12 +99,19 @@ AssetsManager::AssetsManager(const std::string &managerId, const std::string& ma
     _downloader = new Downloader(this);
     setStoragePath(storagePath);
     
+    _localManifest = new Manifest();
+    _localManifest->retain();
     loadManifest(manifestUrl);
-    CCLOG("%s\n%s\n%p\n", _manifestUrl.c_str(), _storagePath.c_str(), this);
+    
+    _remoteManifest = new Manifest();
+    _remoteManifest->retain();
 }
 
 AssetsManager::~AssetsManager()
 {
+    _downloader->~Downloader();
+    _localManifest->release();
+    _remoteManifest->release();
 }
 
 AssetsManager* AssetsManager::create(const std::string &managerId, const std::string& manifestUrl, const std::string& storagePath/* = ""*/)
@@ -114,9 +121,8 @@ AssetsManager* AssetsManager::create(const std::string &managerId, const std::st
     return manager;
 }
 
-void AssetsManager::setLocalManifest(Manifest *manifest)
+void AssetsManager::prepareLocalManifest()
 {
-    _localManifest = manifest;
     // An alias to assets
     _assets = &(_localManifest->getAssets());
     
@@ -126,29 +132,27 @@ void AssetsManager::setLocalManifest(Manifest *manifest)
 
 void AssetsManager::loadManifest(const std::string& manifestUrl)
 {
-    _localManifest = nullptr;
     std::string cachedManifest = _storagePath + MANIFEST_FILENAME;
     // Prefer to use the cached manifest file, if not found use user configured manifest file
     // Prepend storage path to avoid multi package conflict issue
     if (_fileUtils->isFileExist(cachedManifest))
     {
-        Manifest *manifest = new Manifest(cachedManifest);
-        if (manifest->isLoaded())
-            setLocalManifest(manifest);
+        _localManifest->parse(cachedManifest);
+        if (_localManifest->isLoaded())
+            prepareLocalManifest();
         else
             destroyFile(cachedManifest);
     }
-    
     // Fail to found or load cached manifest file
-    if (_localManifest == nullptr)
+    else
     {
-        Manifest *manifest = new Manifest(_manifestUrl);
-        if (manifest->isLoaded())
-            setLocalManifest(manifest);
+        _localManifest->parse(_manifestUrl);
+        if (_localManifest->isLoaded())
+            prepareLocalManifest();
     }
     
     // Fail to load local manifest
-    if (_localManifest == nullptr || !_localManifest->isLoaded())
+    if (!_localManifest->isLoaded())
     {
         CCLOG("AssetsManager : No local manifest file found error.");
         EventCustom event(_managerId + NO_LOCAL_MANIFEST);
@@ -167,15 +171,25 @@ std::string AssetsManager::get(const std::string& key) const
     else return "";
 }
 
+const std::string& AssetsManager::getManagerId() const
+{
+    return _managerId;
+}
+
 std::string AssetsManager::getLoadedEventName(const std::string& key)
 {
     std::string eventName = _managerId + "_" + key + "_Loaded";
     return eventName;
 }
 
-const Manifest* AssetsManager::getLocalManifest()
+const Manifest* AssetsManager::getLocalManifest() const
 {
     return _localManifest;
+}
+
+const Manifest* AssetsManager::getRemoteManifest() const
+{
+    return _remoteManifest;
 }
 
 const std::string& AssetsManager::getStoragePath() const
@@ -191,8 +205,6 @@ void AssetsManager::setStoragePath(const std::string& storagePath)
     _storagePath = storagePath;
     adjustPath(_storagePath);
     createDirectory(_storagePath);
-    //if (_storagePath.size() > 0)
-        //prependSearchPath(_storagePath);
 }
 
 void AssetsManager::adjustPath(std::string &path)
@@ -384,10 +396,7 @@ void AssetsManager::checkUpdate()
         break;
         case VERSION_LOADED:
         {
-            if (_remoteManifest == nullptr)
-                _remoteManifest = new Manifest(_storagePath + VERSION_FILENAME);
-            else
-                _remoteManifest->parse(_storagePath + VERSION_FILENAME);
+            _remoteManifest->parse(_storagePath + VERSION_FILENAME);
             
             if (!_remoteManifest->isVersionLoaded())
             {
@@ -437,10 +446,7 @@ void AssetsManager::checkUpdate()
         break;
         case MANIFEST_LOADED:
         {
-            if (_remoteManifest == nullptr)
-                _remoteManifest = new Manifest(_storagePath + MANIFEST_FILENAME);
-            else
-                _remoteManifest->parse(_storagePath + MANIFEST_FILENAME);
+            _remoteManifest->parse(_storagePath + MANIFEST_FILENAME);
             
             if (!_remoteManifest->isLoaded())
             {
@@ -557,8 +563,6 @@ void AssetsManager::update()
 
 void AssetsManager::onError(const Downloader::Error &error)
 {
-    CCLOG("%d : %s\n", error.code, error.message.c_str());
-    
     // Skip version error occured
     if (error.customId == "@version")
     {
@@ -583,7 +587,6 @@ void AssetsManager::onProgress(double total, double downloaded, const std::strin
         return;
     
     int percent = (downloaded / total) * 100;
-    CCLOG("Progress: %d\n", percent);
     
     EventCustom event(_managerId + UPDATING_PERCENT_EVENT);
     event.setUserData(&percent);
@@ -592,8 +595,6 @@ void AssetsManager::onProgress(double total, double downloaded, const std::strin
 
 void AssetsManager::onSuccess(const std::string &srcUrl, const std::string &customId)
 {
-    CCLOG("SUCCEED: %s\n", customId.c_str());
-    
     if (customId == "@version")
     {
         _updateState = VERSION_LOADED;
@@ -624,8 +625,6 @@ void AssetsManager::onSuccess(const std::string &srcUrl, const std::string &cust
             EventCustom updateEvent(_managerId + UPDATING_PERCENT_EVENT);
             double percent = 100 * (_totalToDownload - _downloadUnits.size()) / _totalToDownload;
             updateEvent.setUserData(&percent);
-            time_t t = time(0);
-            CCLOG("TOTAL DOWNLOAD PROCESS (%ld) : %f\n", t, percent);
             _eventDispatcher->dispatchEvent(&updateEvent);
         }
         // Finish check
@@ -640,7 +639,10 @@ void AssetsManager::onSuccess(const std::string &srcUrl, const std::string &cust
             else
             {
                 // Every thing is correctly downloaded, swap the localManifest
-                setLocalManifest(_remoteManifest);
+                if (_localManifest != nullptr)
+                    _localManifest->release();
+                _localManifest = _remoteManifest;
+                prepareLocalManifest();
                 dispatchUpdateEvent(UpdateEventCode::FINISHED_UPDATE);
             }
         }
