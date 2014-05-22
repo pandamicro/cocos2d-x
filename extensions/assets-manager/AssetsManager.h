@@ -45,6 +45,8 @@ class AssetsManager : public Ref
 {
 public:
     
+    friend class Downloader;
+    
     //! Update states
     enum class State
     {
@@ -57,8 +59,12 @@ public:
         MANIFEST_LOADED,
         NEED_UPDATE,
         UPDATING,
-        UP_TO_DATE
+        UP_TO_DATE,
+        FAIL_TO_UPDATE
     };
+    
+    const static std::string VERSION_ID;
+    const static std::string MANIFEST_ID;
     
     /** @brief Create function for creating a new AssetsManager
      @param manifestUrl   The url for the local manifest file
@@ -102,6 +108,14 @@ CC_CONSTRUCTOR_ACCESS:
     
 protected:
     
+    static void createDirectory(const std::string &path);
+    
+    static void removeDirectory(const std::string &path);
+    
+    static void removeFile(const std::string &path);
+    
+    static void renameFile(const std::string &path, const std::string &oldname, const std::string &name);
+    
     std::string get(const std::string& key) const;
     
     void loadManifest(const std::string& manifestUrl);
@@ -112,17 +126,7 @@ protected:
     
     void adjustPath(std::string &path);
     
-    void prependSearchPath(const std::string &path);
-    
     void dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string message = "", std::string assetId = "");
-    
-    void createDirectory(const std::string &path);
-    
-    void removeDirectory(const std::string &path);
-    
-    void removeFile(const std::string &path);
-    
-    void renameFile(const std::string &path, const std::string &oldname, const std::string &name);
     
     void downloadVersion();
     void parseVersion();
@@ -131,6 +135,8 @@ protected:
     void startUpdate();
 // TODO: For next version
     //bool uncompress();
+    
+    void batchDownload(const std::unordered_map<std::string, Downloader::DownloadUnit> &units);
     
     /** @brief Function for destorying the downloaded version file and manifest file
      */
@@ -169,9 +175,6 @@ protected:
     
 private:
     
-    //! The root of writable path
-    static std::string s_nWritableRoot;
-    
     //! The event of the current AssetsManager in event dispatcher
     std::string _eventName;
     
@@ -191,6 +194,15 @@ private:
     
     //! The path to store downloaded resources.
     std::string _storagePath;
+    
+    //! The local path of cached version file
+    std::string _cacheVersionPath;
+    
+    //! The local path of cached manifest file
+    std::string _cacheManifestPath;
+    
+    //! The local path of cached temporary manifest file
+    std::string _tempManifestPath;
     
     //! The path of local manifest file
     std::string _manifestUrl;
@@ -216,6 +228,6 @@ private:
     int _totalWaitToDownload;
 };
 
-NS_CC_EXT_END;
+NS_CC_EXT_END
 
 #endif /* defined(__AssetsManager__) */

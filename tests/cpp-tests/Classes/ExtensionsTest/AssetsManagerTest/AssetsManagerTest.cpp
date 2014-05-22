@@ -8,7 +8,7 @@ const char* sceneManifests[] = {"Manifests/AMTestScene1/project.manifest", "Mani
 const char* storagePaths[] = {"CppTests/AssetsManagerTest/scene1/", "CppTests/AssetsManagerTest/scene2/", "CppTests/AssetsManagerTest/scene3"};
 const char* backgroundPaths[] = {"Images/background1.jpg", "Images/background2.jpg", "Images/background3.png"};
 
-AssetsManagerTestLayer::AssetsManagerTestLayer(std::string spritePath)
+AssetsManagerTestLayer::AssetsManagerTestLayer(const std::string& spritePath)
 : _spritePath(spritePath)
 {
 }
@@ -33,17 +33,22 @@ void AssetsManagerTestLayer::onEnter()
 void AssetsManagerTestLayer::restartCallback(Ref* sender)
 {
 }
+
 void AssetsManagerTestLayer::nextCallback(Ref* sender)
 {
     if (AssetsManagerLoaderScene::currentScene < 2)
     {
         AssetsManagerLoaderScene::currentScene++;
     }
-    else AssetsManagerLoaderScene::currentScene = 0;
+    else
+    {
+        AssetsManagerLoaderScene::currentScene = 0;
+    }
     auto scene = new AssetsManagerLoaderScene();
     scene->runThisTest();
     scene->release();
 }
+
 void AssetsManagerTestLayer::backCallback(Ref* sender)
 {
     if (AssetsManagerLoaderScene::currentScene > 0)
@@ -70,13 +75,15 @@ void AssetsManagerTestScene::runThisTest()
 
 int AssetsManagerLoaderScene::currentScene = 0;
 AssetsManagerLoaderScene::AssetsManagerLoaderScene()
+: _progress(nullptr)
+, _amListener(nullptr)
 {
 }
 
 void AssetsManagerLoaderScene::runThisTest()
 {
     int currentId = currentScene;
-    std::string manifestPath = sceneManifests[currentId], storagePath = storagePaths[currentId];
+    std::string manifestPath = sceneManifests[currentId], storagePath = FileUtils::getInstance()->getWritablePath() + storagePaths[currentId];
     
     Sprite *sprite = Sprite::create("Images/Icon.png");
     auto layer = Layer::create();
@@ -84,10 +91,10 @@ void AssetsManagerLoaderScene::runThisTest()
     layer->addChild(sprite);
     sprite->setPosition( VisibleRect::center() );
     
-    TTFConfig config("fonts/tahoma.ttf", 40);
-    Label *progress = Label::createWithTTF(config, "0%", TextHAlignment::CENTER);
-    progress->setPosition( Vec2(VisibleRect::center().x, VisibleRect::center().y + 50) );
-    layer->addChild(progress);
+    TTFConfig config("fonts/tahoma.ttf", 30);
+    _progress = Label::createWithTTF(config, "0%", TextHAlignment::CENTER);
+    _progress->setPosition( Vec2(VisibleRect::center().x, VisibleRect::center().y + 50) );
+    layer->addChild(_progress);
     
     _am = AssetsManager::create(manifestPath, storagePath);
     _am->retain();
@@ -101,7 +108,7 @@ void AssetsManagerLoaderScene::runThisTest()
     }
     else
     {
-        cocos2d::extension::EventListenerAssetsManager *listener = cocos2d::extension::EventListenerAssetsManager::create(_am, [currentId, progress](EventAssetsManager* event){
+        _amListener = cocos2d::extension::EventListenerAssetsManager::create(_am, [currentId, this](EventAssetsManager* event){
             AssetsManagerTestScene *scene;
             switch (event->getEventCode())
             {
@@ -115,8 +122,20 @@ void AssetsManagerLoaderScene::runThisTest()
                     break;
                 case EventAssetsManager::EventCode::UPDATE_PROGRESSION:
                 {
+                    std::string assetId = event->getAssetId();
                     int percent = event->getPercent();
-                    progress->setString(StringUtils::format("%d", percent));
+                    std::string str;
+                    if (assetId == AssetsManager::VERSION_ID)
+                    {
+                        str = StringUtils::format("Version file: %d", percent) + "%";
+                    }
+                    else if (assetId == AssetsManager::MANIFEST_ID)
+                    {
+                        str = StringUtils::format("Manifest file: %d", percent) + "%";
+                    }
+                    else str = StringUtils::format("%d", percent) + "%";
+                    if (this->_progress != nullptr)
+                        this->_progress->setString(str);
                 }
                     break;
                 case EventAssetsManager::EventCode::ERROR_DOWNLOAD_MANIFEST:
@@ -131,7 +150,15 @@ void AssetsManagerLoaderScene::runThisTest()
                 case EventAssetsManager::EventCode::ALREADY_UP_TO_DATE:
                 case EventAssetsManager::EventCode::UPDATE_FINISHED:
                 {
-                    CCLOG("Update finished.");
+                    CCLOG("Update finished. %d", event->getEventCode());
+                    scene = new AssetsManagerTestScene(backgroundPaths[currentId]);
+                    Director::getInstance()->replaceScene(scene);
+                    scene->release();
+                }
+                    break;
+                case EventAssetsManager::EventCode::UPDATE_FAILED:
+                {
+                    CCLOG("Update failed. %d", event->getEventCode());
                     scene = new AssetsManagerTestScene(backgroundPaths[currentId]);
                     Director::getInstance()->replaceScene(scene);
                     scene->release();
@@ -149,7 +176,7 @@ void AssetsManagerLoaderScene::runThisTest()
                     break;
             }
         });
-        Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(listener, 1);
+        Director::getInstance()->getEventDispatcher()->addEventListenerWithFixedPriority(_amListener, 1);
         
         _am->update();
         
@@ -159,6 +186,7 @@ void AssetsManagerLoaderScene::runThisTest()
 
 void AssetsManagerLoaderScene::onExit()
 {
+    _eventDispatcher->removeEventListener(_amListener);
     _am->release();
     Scene::onExit();
 }

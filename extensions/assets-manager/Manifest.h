@@ -36,7 +36,8 @@
 
 NS_CC_EXT_BEGIN
 
-class CC_DLL Manifest : public Ref
+
+class Manifest : public Ref
 {
 public:
     
@@ -85,15 +86,6 @@ public:
      */
     const std::string& getVersion() const;
     
-    /** @brief Gets assets.
-     */
-    const std::unordered_map<std::string, Asset>& getAssets() const;
-    
-    /** @brief Gets asset by key.
-     @param key Key of the requested asset
-     */
-    const Asset& getAsset(const std::string &key) const;
-    
 protected:
     
     /** @brief Constructor for Manifest class
@@ -124,8 +116,6 @@ protected:
     
     void loadManifest(const rapidjson::Document &json);
     
-    rapidjson::Document parseJSON(const std::string &url);
-    
     Asset parseAsset(const std::string &path, const rapidjson::Value &json);
     
     void clear();
@@ -142,6 +132,10 @@ protected:
      @param group   Key of the requested group
      */
     const std::string& getGroupVersion(const std::string &group) const;
+    
+    /** @brief Gets assets.
+     */
+    const std::unordered_map<std::string, Asset>& getAssets() const;
     
 private:
     
@@ -185,6 +179,5 @@ private:
     std::vector<std::string> _searchPaths;
 };
 
-NS_CC_EXT_END;
-
+NS_CC_EXT_END
 #endif /* defined(__Manifest__) */

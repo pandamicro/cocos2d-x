@@ -24,9 +24,6 @@
 
 #include "Manifest.h"
 
-using namespace cocos2d;
-
-NS_CC_EXT_BEGIN;
 
 #define KEY_VERSION             "version"
 #define KEY_PACKAGE_URL         "packageUrl"
@@ -43,6 +40,8 @@ NS_CC_EXT_BEGIN;
 #define KEY_GROUP               "group"
 #define KEY_COMPRESSED          "compressed"
 #define KEY_COMPRESSED_FILE     "compressedFile"
+
+NS_CC_EXT_BEGIN
 
 Manifest::Manifest(const std::string& manifestUrl/* = ""*/)
 : _versionLoaded(false)
@@ -62,7 +61,32 @@ Manifest::Manifest(const std::string& manifestUrl/* = ""*/)
 void Manifest::parse(const std::string& manifestUrl)
 {
     clear();
-    rapidjson::Document json = parseJSON(manifestUrl);
+	std::string content;
+	rapidjson::Document json;
+	if (_fileUtils->isFileExist(manifestUrl))
+	{
+		// Load file content
+		content = _fileUtils->getStringFromFile(manifestUrl);
+
+		if (content.size() == 0)
+		{
+			CCLOG("Fail to retrieve local file content: %s\n", manifestUrl.c_str());
+		}
+		else
+		{
+			// Parse file with rapid json
+			json.Parse<0>(content.c_str());
+			// Print error
+			if (json.HasParseError()) {
+			size_t offset = json.GetErrorOffset();
+			if(offset > 0)
+			offset--;
+			std::string errorSnippet = content.substr(offset, 10);
+			CCLOG("File parse error %s at <%s>\n", json.GetParseError(), errorSnippet.c_str());
+			}
+		}
+	}
+			
     if (json.IsObject())
     {
         // Register the local manifest root
@@ -101,7 +125,7 @@ bool Manifest::versionEquals(const Manifest *b) const
             return false;
         
         // Check groups version
-        for (int i = 0; i < _groups.size(); i++) {
+        for (int i = 0; i < _groups.size(); ++i) {
             std::string gid =_groups[i];
             // Check group name
             if (gid != bGroups[i])
@@ -123,7 +147,7 @@ std::unordered_map<std::string, Manifest::AssetDiff> Manifest::genDiff(const Man
     Asset valueA;
     Asset valueB;
     std::unordered_map<std::string, Asset>::const_iterator valueIt, it;
-    for (it = _assets.begin(); it != _assets.end(); it++)
+    for (it = _assets.begin(); it != _assets.end(); ++it)
     {
         key = it->first;
         valueA = it->second;
@@ -148,7 +172,7 @@ std::unordered_map<std::string, Manifest::AssetDiff> Manifest::genDiff(const Man
         }
     }
     
-    for (it = bAssets.begin(); it != bAssets.end(); it++)
+    for (it = bAssets.begin(); it != bAssets.end(); ++it)
     {
         key = it->first;
         valueB = it->second;
@@ -226,41 +250,6 @@ const std::unordered_map<std::string, Manifest::Asset>& Manifest::getAssets() co
     return _assets;
 }
 
-const Manifest::Asset& Manifest::getAsset(const std::string &key) const
-{
-    return _assets.at(key);
-}
-
-rapidjson::Document Manifest::parseJSON(const std::string &url)
-{
-    std::string content;
-    rapidjson::Document json;
-    if (_fileUtils->isFileExist(url))
-    {
-        // Load file content
-        content = _fileUtils->getStringFromFile(url);
-        
-        if (content.size() == 0)
-        {
-            CCLOG("Fail to retrieve local file content: %s\n", url.c_str());
-        }
-        else
-        {
-            // Parse file with rapid json
-            json.Parse<0>(content.c_str());
-            // Print error
-            if (json.HasParseError()) {
-                size_t offset = json.GetErrorOffset();
-                if(offset > 0)
-                    offset--;
-                std::string errorSnippet = content.substr(offset, 10);
-                CCLOG("File parse error %s at <%s>\n", json.GetParseError(), errorSnippet.c_str());
-            }
-        }
-    }
-    return json;
-}
-
 void Manifest::clear()
 {
     if (_versionLoaded || _loaded)
@@ -288,7 +277,7 @@ Manifest::Asset Manifest::parseAsset(const std::string &path, const rapidjson::V
 {
     Asset asset;
     asset.path = path;
-        
+	
     if( json.HasMember(KEY_MD5) && json[KEY_MD5].IsString() )
     {
         asset.md5 = json[KEY_MD5].GetString();
@@ -391,7 +380,7 @@ void Manifest::loadManifest(const rapidjson::Document &json)
         const rapidjson::Value& paths = json[KEY_SEARCH_PATHS];
         if (paths.IsArray())
         {
-            for (rapidjson::SizeType i = 0; i < paths.Size(); i++)
+            for (rapidjson::SizeType i = 0; i < paths.Size(); ++i)
             {
                 if (paths[i].IsString()) {
                     _searchPaths.push_back(paths[i].GetString());
@@ -403,4 +392,4 @@ void Manifest::loadManifest(const rapidjson::Document &json)
     _loaded = true;
 }
 
-NS_CC_EXT_END;
+NS_CC_EXT_END

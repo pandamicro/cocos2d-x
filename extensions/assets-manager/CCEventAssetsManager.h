@@ -37,6 +37,8 @@ class EventAssetsManager : public cocos2d::EventCustom
 {
 public:
     
+    friend class AssetsManager;
+    
     //! Update events code
     enum class EventCode
     {
@@ -48,13 +50,11 @@ public:
         UPDATE_PROGRESSION,
         ASSET_UPDATED,
         ERROR_UPDATING,
-        UPDATE_FINISHED
+        UPDATE_FINISHED,
+        UPDATE_FAILED
 // TODO: For next version
         // UNCOMPRESS_ERROR
     };
-    
-    /** Constructor */
-    EventAssetsManager(const std::string& eventName, cocos2d::extension::AssetsManager *manager, const EventCode &code, float percent = 0, const std::string& assetId = "", const std::string& message = "");
     
     inline EventCode getEventCode() const { return _code; };
     
@@ -67,6 +67,10 @@ public:
     inline float getPercent() const { return _percent; };
     
 protected:
+    /** Constructor */
+    EventAssetsManager(const std::string& eventName, cocos2d::extension::AssetsManager *manager, const EventCode &code, float percent = 0, const std::string& assetId = "", const std::string& message = "");
+    
+private:
     EventCode _code;
     
     cocos2d::extension::AssetsManager *_manager;
