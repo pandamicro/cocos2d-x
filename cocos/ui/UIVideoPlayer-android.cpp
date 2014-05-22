@@ -30,17 +30,13 @@
 #include <jni.h>
 #include <string>
 #include "jni/JniHelper.h"
-#include "base/CCDirector.h"
-#include "base/CCEventListenerKeyboard.h"
 
 //-----------------------------------------------------------------------------------------------------------
 #define  CLASS_NAME "org/cocos2dx/lib/Cocos2dxVideoHelper"
 
+void executeVideoCallback(int index,int event);
+
 USING_NS_CC;
-
-static void executeVideoCallback(int index,int event);
-
-#define QUIT_FULLSCREEN 1000
 
 extern "C" {
     void Java_org_cocos2dx_lib_Cocos2dxVideoHelper_nativeExecuteVideoCallback(JNIEnv * env, jobject obj, jint index,jint event) {
@@ -83,17 +79,6 @@ void setVideoRectJNI(int index,int left,int top,int width,int height)
 
     if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "setVideoRect", "(IIIII)V")) {
         t.env->CallStaticVoidMethod(t.classID, t.methodID, index, left, top, width, height);
-
-        t.env->DeleteLocalRef(t.classID);
-    }
-}
-
-void setFullScreenEnabledJni(int index,bool enabled, int width, int height)
-{
-    JniMethodInfo t;
-
-    if (JniHelper::getStaticMethodInfo(t, CLASS_NAME, "setFullScreenEnabled", "(IZII)V")) {
-        t.env->CallStaticVoidMethod(t.classID, t.methodID, index, enabled, width, height);
 
         t.env->DeleteLocalRef(t.classID);
     }
@@ -179,10 +164,15 @@ VideoPlayer::VideoPlayer()
     _videoPlayerIndex = createVideoWidgetJNI();
     s_allVideoPlayers[_videoPlayerIndex] = this;
 
-#if CC_VIDEOPLAYER_DEBUG_DRAW
-    _debugDrawNode = DrawNode::create();
-    addchild(_debugDrawNode);
-#endif
+    auto listener = EventListenerKeyboard::create();
+    listener->onKeyReleased = [&](EventKeyboard::KeyCode keycode, cocos2d::Event* event){
+        if (keycode == EventKeyboard::KeyCode::KEY_BACKSPACE && _fullScreenEnabled)
+        {
+            this->setFullScreenEnabled(false);
+        }
+    };
+
+    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 }
 
 VideoPlayer::~VideoPlayer()
@@ -205,40 +195,41 @@ void VideoPlayer::setURL(const std::string& videoUrl)
     setVideoURLJNI(_videoPlayerIndex,(int)Source::URL,_videoURL);
 }
 
-void VideoPlayer::draw(Renderer* renderer, const Mat4 &transform, uint32_t flags)
+void VideoPlayer::draw(Renderer* renderer, const Mat4 &transform, bool transformUpdated)
 {
-    cocos2d::ui::Widget::draw(renderer,transform,flags);
+    cocos2d::ui::Widget::draw(renderer,transform,transformUpdated);
 
-    if (flags & FLAGS_TRANSFORM_DIRTY)
+    if (transformUpdated || _fullScreenDirty)
     {
+        _fullScreenDirty = false;
         auto directorInstance = Director::getInstance();
         auto glView = directorInstance->getOpenGLView();
         auto frameSize = glView->getFrameSize();
 
-        auto winSize = directorInstance->getWinSize();
+        if (_fullScreenEnabled)
+        {
+            setVideoRectJNI(_videoPlayerIndex,0,0,frameSize.width,frameSize.height);
+        } 
+        else
+        {
+            auto winSize = directorInstance->getWinSize();
 
-        auto leftBottom = convertToWorldSpace(Point::ZERO);
-        auto rightTop = convertToWorldSpace(Point(_contentSize.width,_contentSize.height));
+            auto leftBottom = convertToWorldSpace(Point::ZERO);
+            auto rightTop = convertToWorldSpace(Point(_contentSize.width,_contentSize.height));
 
-        auto uiLeft = frameSize.width / 2 + (leftBottom.x - winSize.width / 2 ) * glView->getScaleX();
-        auto uiTop = frameSize.height /2 - (rightTop.y - winSize.height / 2) * glView->getScaleY();
+            auto uiLeft = frameSize.width / 2 + (leftBottom.x - winSize.width / 2 ) * glView->getScaleX();
+            auto uiTop = frameSize.height /2 - (rightTop.y - winSize.height / 2) * glView->getScaleY();
 
-        setVideoRectJNI(_videoPlayerIndex,uiLeft,uiTop,
-            (rightTop.x - leftBottom.x) * glView->getScaleX(),
-            (rightTop.y - leftBottom.y) * glView->getScaleY());
+            setVideoRectJNI(_videoPlayerIndex,uiLeft,uiTop,
+                (rightTop.x - leftBottom.x) * glView->getScaleX(),
+                (rightTop.y - leftBottom.y) * glView->getScaleY());
+        } 
     }
 
 #if CC_VIDEOPLAYER_DEBUG_DRAW
-    _debugDrawNode->clear();
-    auto size = getContentSize();
-    Point vertices[4]=
-    {
-        Point::ZERO,
-        Point(size.width, 0),
-        Point(size.width, size.height),
-        Point(0, size.height)
-    };
-    _debugdrawNode->drawPoly(vertices, 4, true, Color4F(1.0, 1.0, 1.0, 1.0));
+    _customDebugDrawCommand.init(_globalZOrder);
+    _customDebugDrawCommand.func = CC_CALLBACK_0(VideoPlayer::drawDebugData, this);
+    renderer->addCommand(&_customDebugDrawCommand);
 #endif
 }
 
@@ -247,13 +238,11 @@ void VideoPlayer::setFullScreenEnabled(bool enabled)
     if (_fullScreenEnabled != enabled)
     {
         _fullScreenEnabled = enabled;
-
-        auto frameSize = Director::getInstance()->getOpenGLView()->getFrameSize();
-        setFullScreenEnabledJni(_videoPlayerIndex, enabled, frameSize.width, frameSize.height);
+        _fullScreenDirty = true;
     }
 }
 
-bool VideoPlayer::isFullScreenEnabled()const
+bool VideoPlayer::isFullScreenEnabled()
 {
     return _fullScreenEnabled;
 }
@@ -352,47 +341,17 @@ void VideoPlayer::addEventListener(const VideoPlayer::ccVideoPlayerCallback& cal
     _eventCallback = callback;
 }
 
-void VideoPlayer::onPlayEvent(int event)
+void VideoPlayer::onPlayEvent(VideoPlayer::EventType event)
 {
-    if (event == QUIT_FULLSCREEN)
-    {
-        _fullScreenEnabled = false;
-    } 
-    else
-    {
-        VideoPlayer::EventType videoEvent = (VideoPlayer::EventType)event;
-        if (videoEvent == VideoPlayer::EventType::PLAYING) {
-            _isPlaying = true;
-        } else {
-            _isPlaying = false;
-        }
-
-        if (_eventCallback)
-        {
-            _eventCallback(this,videoEvent);
-        }
+    if (event == VideoPlayer::EventType::PLAYING) {
+        _isPlaying = true;
+    } else {
+        _isPlaying = false;
     }
-}
 
-cocos2d::ui::Widget* VideoPlayer::createCloneInstance()
-{
-    return VideoPlayer::create();
-}
-
-void VideoPlayer::copySpecialProperties(Widget *widget)
-{
-    VideoPlayer* videoPlayer = dynamic_cast<VideoPlayer*>(widget);
-    if (videoPlayer)
+    if (_eventCallback)
     {
-        _isPlaying = videoPlayer->_isPlaying;
-        _fullScreenEnabled = videoPlayer->_fullScreenEnabled;
-        _fullScreenDirty = videoPlayer->_fullScreenDirty;
-        _videoURL = videoPlayer->_videoURL;
-        _keepAspectRatioEnabled = videoPlayer->_keepAspectRatioEnabled;
-        _videoSource = videoPlayer->_videoSource;
-        _videoPlayerIndex = videoPlayer->_videoPlayerIndex;
-        _eventCallback = videoPlayer->_eventCallback;
-        _videoView = videoPlayer->_videoView;
+        _eventCallback(this,event);
     }
 }
 
@@ -401,7 +360,7 @@ void executeVideoCallback(int index,int event)
     auto it = s_allVideoPlayers.find(index);
     if (it != s_allVideoPlayers.end())
     {
-        s_allVideoPlayers[index]->onPlayEvent(event);
+        s_allVideoPlayers[index]->onPlayEvent((VideoPlayer::EventType)event);
     }
 }
 

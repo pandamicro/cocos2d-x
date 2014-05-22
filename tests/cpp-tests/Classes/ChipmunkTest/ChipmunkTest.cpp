@@ -32,7 +32,7 @@ ChipmunkTestLayer::ChipmunkTestLayer()
     
     // title
     auto label = Label::createWithTTF("Multi touch the screen", "fonts/Marker Felt.ttf", 36.0f);
-    label->setPosition(VisibleRect::center().x, VisibleRect::top().y - 30);
+    label->setPosition(cocos2d::Vec2( VisibleRect::center().x, VisibleRect::top().y - 30));
     this->addChild(label, -1);
 
     // reset button
@@ -58,9 +58,9 @@ ChipmunkTestLayer::ChipmunkTestLayer()
     MenuItemFont::setFontSize(18);
     auto item = MenuItemFont::create("Toggle debug", CC_CALLBACK_1(ChipmunkTestLayer::toggleDebugCallback, this));
 
-    auto menu = Menu::create(item, nullptr);
+    auto menu = Menu::create(item, NULL);
     this->addChild(menu);
-    menu->setPosition(VisibleRect::right().x-100, VisibleRect::top().y-60);
+    menu->setPosition(cocos2d::Vec2(VisibleRect::right().x-100, VisibleRect::top().y-60));
 
     scheduleUpdate();
 #else
@@ -68,7 +68,7 @@ ChipmunkTestLayer::ChipmunkTestLayer()
                                             "fonts/arial.ttf",
                                             18);
     auto size = Director::getInstance()->getWinSize();
-    label->setPosition(size.width/2, size.height/2);
+    label->setPosition(Vec2(size.width/2, size.height/2));
     
     addChild(label);
     
@@ -158,16 +158,16 @@ void ChipmunkTestLayer::createResetButton()
 {
     auto reset = MenuItemImage::create("Images/r1.png", "Images/r2.png", CC_CALLBACK_1(ChipmunkTestLayer::reset, this));
 
-    auto menu = Menu::create(reset, nullptr);
+    auto menu = Menu::create(reset, NULL);
 
-    menu->setPosition(VisibleRect::center().x, VisibleRect::bottom().y + 30);
+    menu->setPosition(cocos2d::Vec2(VisibleRect::center().x, VisibleRect::bottom().y + 30));
     this->addChild(menu, -1);
 }
 
 void ChipmunkTestLayer::reset(Ref* sender)
 {
-    auto s = new (std::nothrow) ChipmunkAccelTouchTestScene();
-    auto child = new (std::nothrow) ChipmunkTestLayer();
+    auto s = new ChipmunkAccelTouchTestScene();
+    auto child = new ChipmunkTestLayer();
     s->addChild(child);
     child->release();
     Director::getInstance()->replaceScene(s);
@@ -249,7 +249,7 @@ void ChipmunkTestLayer::onAcceleration(Acceleration* acc, Event* event)
 
 void ChipmunkAccelTouchTestScene::runThisTest()
 {
-    auto layer = new (std::nothrow) ChipmunkTestLayer();
+    auto layer = new ChipmunkTestLayer();
     addChild(layer);
     layer->release();
 

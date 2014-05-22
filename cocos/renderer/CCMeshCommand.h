@@ -25,21 +25,17 @@
 #ifndef _CC_MESHCOMMAND_H_
 #define _CC_MESHCOMMAND_H_
 
-#include <unordered_map>
-#include "renderer/CCRenderCommand.h"
+#include "CCRenderCommand.h"
 #include "renderer/CCGLProgram.h"
 #include "math/CCMath.h"
+#include "CCRenderCommandPool.h"
 
 NS_CC_BEGIN
 
 class GLProgramState;
-class GLProgram;
-struct Uniform;
-class EventListenerCustom;
-class EventCustom;
 
 //it is a common mesh
-class CC_DLL MeshCommand : public RenderCommand
+class MeshCommand : public RenderCommand
 {
 public:
 
@@ -57,44 +53,15 @@ public:
     void setDepthWriteEnabled(bool enable);
     
     void setDisplayColor(const Vec4& color);
-    
-    void setMatrixPalette(const Vec4* matrixPalette) { _matrixPalette = matrixPalette; }
-    
-    void setMatrixPaletteSize(int size) { _matrixPaletteSize = size; }
 
-    void setLightMask(unsigned int lightmask) { _lightMask = lightmask; }
-    
     void execute();
-    
-    //used for bath
-    void preBatchDraw();
-    void batchDraw();
-    void postBatchDraw();
-    
-    void genMaterialID(GLuint texID, void* glProgramState, GLuint vertexBuffer, GLuint indexBuffer, const BlendFunc& blend);
-    
-    uint32_t getMaterialID() const { return _materialID; }
-    
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
-    void listenRendererRecreated(EventCustom* event);
-#endif
 
 protected:
-    //build & release vao
-    void buildVAO();
-    void releaseVAO();
-    
     // apply renderstate
     void applyRenderState();
-
-    void setLightUniforms();
     
     //restore to all false
     void restoreRenderState();
-    
-    void MatrixPalleteCallBack( GLProgram* glProgram, Uniform* uniform);
-
-    void setLightUniformNames();
 
     GLuint _textureID;
     GLProgramState* _glProgramState;
@@ -103,14 +70,6 @@ protected:
     GLuint _textrueID;
     
     Vec4 _displayColor; // in order to support tint and fade in fade out
-    
-    // used for skin
-    const Vec4* _matrixPalette;
-    int   _matrixPaletteSize;
-    
-    uint32_t _materialID; //material ID
-    
-    GLuint   _vao; //use vao if possible
     
     GLuint _vertexBuffer;
     GLuint _indexBuffer;
@@ -126,14 +85,7 @@ protected:
 
     // ModelView transform
     Mat4 _mv;
-
-    unsigned int _lightMask;
-
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_WP8)
-    EventListenerCustom* _rendererRecreatedListener;
-#endif
 };
-
 NS_CC_END
 
 #endif //_CC_MESHCOMMAND_H_

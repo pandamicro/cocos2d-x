@@ -26,17 +26,16 @@ THE SOFTWARE.
 #define __UILOADINGBAR_H__
 
 #include "ui/UIWidget.h"
-#include "ui/GUIExport.h"
 
 NS_CC_BEGIN
 
 namespace ui {
-    class Scale9Sprite;
+
 /**
 *   @js NA
 *   @lua NA
 */
-class CC_GUI_DLL LoadingBar : public Widget
+class LoadingBar : public Widget
 {
     
     DECLARE_CLASS_GUI_INFO
@@ -72,7 +71,7 @@ public:
      *
      * @see Direction  LEFT means progress left to right, RIGHT otherwise.
      *
-     * @param direction Direction
+     * @param Direction
      */
     void setDirection(Direction direction);
     
@@ -88,9 +87,9 @@ public:
     /**
      * Load texture for loadingbar.
      *
-     * @param texture   file name of texture.
+     * @param fileName   file name of texture.
      *
-     * @param texType    @see TextureResType
+     * @param texType    @see UI_TEX_TYPE_LOCAL
      */
     void loadTexture(const std::string& texture,TextureResType texType = TextureResType::LOCAL);
     
@@ -104,18 +103,18 @@ public:
     /**
      * Gets the progress direction of loadingbar.
      *
-     * @return percent value from 1 to 100.
+     * @return percent    percent value from 1 to 100.
      */
     float getPercent() const;
     
     /**
      * Sets if loadingbar is using scale9 renderer.
      *
-     * @param enabled true that using scale9 renderer, false otherwise.
+     * @param true that using scale9 renderer, false otherwise.
      */
     void setScale9Enabled(bool enabled);
     
-    bool isScale9Enabled()const;
+    bool isScale9Enabled();
     
     /**
      * Sets capinsets for loadingbar, if loadingbar is using scale9 renderer.
@@ -124,13 +123,13 @@ public:
      */
     void setCapInsets(const Rect &capInsets);
     
-    const Rect& getCapInsets()const;
+    const Rect& getCapInsets();
     
     //override "ignoreContentAdaptWithSize" method of widget.
     virtual void ignoreContentAdaptWithSize(bool ignore) override;
     
     //override "getVirtualRendererSize" method of widget.
-    virtual Size getVirtualRendererSize() const override;
+    virtual const Size& getVirtualRendererSize() const override;
     
     //override "getVirtualRenderer" method of widget.
     virtual Node* getVirtualRenderer() override;
@@ -142,19 +141,19 @@ public:
 protected:
     virtual void initRenderer() override;
     virtual void onSizeChanged() override;
-   
+    virtual void updateTextureColor() override;
+    virtual void updateTextureOpacity() override;
+    virtual void updateTextureRGBA() override;
     void setScale9Scale();
     void barRendererScaleChangedWithSize();
-    
-    virtual void adaptRenderers() override;
-    
     virtual Widget* createCloneInstance() override;
     virtual void copySpecialProperties(Widget* model) override;
+    virtual void adaptRenderers() override;
 protected:
     Direction _direction;
     float _percent;
     float _totalLength;
-    Scale9Sprite* _barRenderer;
+    Node* _barRenderer;
     TextureResType _renderBarTexType;
     Size _barRendererTextureSize;
     bool _scale9Enabled;

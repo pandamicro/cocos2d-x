@@ -142,7 +142,7 @@ void PerformanceContainerScene::initWithQuantityOfNodes(unsigned int nNodes)
     increase->setColor(Color3B(0,200,20));
     _increase = increase;
 
-    auto menu = Menu::create(decrease, increase, nullptr);
+    auto menu = Menu::create(decrease, increase, NULL);
     menu->alignItemsHorizontally();
     menu->setPosition(Vec2(s.width/2, s.height/2+15));
     addChild(menu, 1);
@@ -152,11 +152,11 @@ void PerformanceContainerScene::initWithQuantityOfNodes(unsigned int nNodes)
     infoLabel->setPosition(Vec2(s.width/2, s.height/2-15));
     addChild(infoLabel, 1, kTagInfoLayer);
 
-    auto menuLayer = new (std::nothrow) ContainerBasicLayer(true, MAX_LAYER, g_curCase);
+    auto menuLayer = new ContainerBasicLayer(true, MAX_LAYER, g_curCase);
     addChild(menuLayer);
     menuLayer->release();
 
-    log("Size of Node: %d\n", (int)sizeof(Node));
+    printf("Size of Node: %lu\n", sizeof(Node));
     
     int oldFontSize = MenuItemFont::getFontSize();
     MenuItemFont::setFontSize(24);
@@ -190,7 +190,7 @@ void PerformanceContainerScene::initWithQuantityOfNodes(unsigned int nNodes)
         auto sched = director->getScheduler();
         
         CC_PROFILER_PURGE_ALL();
-        sched->schedule(CC_SCHEDULE_SELECTOR(PerformanceContainerScene::dumpProfilerInfo), this, 2, false);
+        sched->schedule(schedule_selector(PerformanceContainerScene::dumpProfilerInfo), this, 2, false);
         
         this->unscheduleUpdate();
         this->scheduleUpdate();
@@ -208,7 +208,7 @@ void PerformanceContainerScene::initWithQuantityOfNodes(unsigned int nNodes)
         auto director = Director::getInstance();
         auto sched = director->getScheduler();
         
-        sched->unschedule(CC_SCHEDULE_SELECTOR(PerformanceContainerScene::dumpProfilerInfo), this);
+        sched->unschedule(schedule_selector(PerformanceContainerScene::dumpProfilerInfo), this);
         
         this->unscheduleUpdate();
         this->_startItem->setEnabled(true);
@@ -223,7 +223,7 @@ void PerformanceContainerScene::initWithQuantityOfNodes(unsigned int nNodes)
     stop->setPosition(VisibleRect::right() + Vec2(0, -40));
     _stopItem = stop;
     
-    auto menu2 = Menu::create(toggle, start, stop, nullptr);
+    auto menu2 = Menu::create(toggle, start, stop, NULL);
     menu2->setPosition(Vec2::ZERO);
     addChild(menu2);
     

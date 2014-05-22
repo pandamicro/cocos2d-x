@@ -84,29 +84,23 @@ public:
     virtual std::string getDescription() const override;
 
 #if CC_LABELATLAS_DEBUG_DRAW
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
 #endif
 
-CC_CONSTRUCTOR_ACCESS:
+protected:
     LabelAtlas()
     :_string("")
-    {
-#if CC_LABELATLAS_DEBUG_DRAW
-        _debugDrawNode = DrawNode::create();
-        addChild(_debugDrawNode);
-#endif
-    }
+    {}
 
     virtual ~LabelAtlas()
     {
         _string.clear();
     }
-    
-protected:
     virtual void updateColor() override;
 
 #if CC_LABELATLAS_DEBUG_DRAW
-    DrawNode *_debugDrawNode;
+    CustomCommand   _customDebugDrawCommand;
+    void drawDebugData(const Mat4& transform, bool transformUpdated);
 #endif
 
     // string to render

@@ -33,10 +33,10 @@ class Button : public Node//, public TargetedTouchDelegate
 public:
     static Button *createWithSprite(const char *filePath)
     {
-        auto b = new (std::nothrow) Button();
+        auto b = new Button();
         if (b && !b->initSpriteButton(filePath)) {
             delete b;
-            b = nullptr;
+            b = NULL;
         }
         b->autorelease();
         return b;
@@ -44,10 +44,10 @@ public:
 
     static Button *createWithText(const char *text)
     {
-        auto b = new (std::nothrow) Button();
+        auto b = new Button();
         if (b && !b->initTextButton(text)) {
             delete b;
-            b = nullptr;
+            b = NULL;
         }
         b->autorelease();
         return b;
@@ -147,10 +147,10 @@ public:
 
     static AudioSlider *create(Direction direction)
     {
-        auto ret = new (std::nothrow) AudioSlider(direction);
+        auto ret = new AudioSlider(direction);
         if (ret && !ret->init()) {
             delete ret;
-            ret = nullptr;
+            ret = NULL;
         }
         ret->autorelease();
         return ret;
@@ -174,9 +174,9 @@ public:
             _lblMinValue = Label::createWithTTF(buffer, "fonts/arial.ttf", 8);
             addChild(_lblMinValue);
             if (_direction == Vertical)
-                _lblMinValue->setPosition(12.0, -50.0);
+                _lblMinValue->setPosition(Vec2(12.0, -50.0));
             else
-                _lblMinValue->setPosition(-50, 12.0);
+                _lblMinValue->setPosition(Vec2(-50, 12.0));
         } else {
             _lblMinValue->setString(buffer);
         }
@@ -186,9 +186,9 @@ public:
             _lblMaxValue = Label::createWithTTF(buffer, "fonts/arial.ttf", 8);
             addChild(_lblMaxValue);
             if (_direction == Vertical)
-                _lblMaxValue->setPosition(12.0, 50.0);
+                _lblMaxValue->setPosition(Vec2(12.0, 50.0));
             else
-                _lblMaxValue->setPosition(50, 12.0);
+                _lblMaxValue->setPosition(Vec2(50, 12.0));
         } else {
             _lblMaxValue->setString(buffer);
         }
@@ -231,7 +231,7 @@ _sliderMusicVolume(nullptr)
 {
     addButtons();
     addSliders();
-    schedule(CC_SCHEDULE_SELECTOR(CocosDenshionTest::updateVolumes));
+    schedule(schedule_selector(CocosDenshionTest::updateVolumes));
 
     // preload background music and effect
     SimpleAudioEngine::getInstance()->preloadBackgroundMusic( MUSIC_FILE );
@@ -397,7 +397,7 @@ void CocosDenshionTest::addSliders()
 void CocosDenshionTest::addChildAt(Node *node, float percentageX, float percentageY)
 {
     const Size size = VisibleRect::getVisibleRect().size;
-    node->setPosition(percentageX * size.width, percentageY * size.height);
+    node->setPosition(Vec2(percentageX * size.width, percentageY * size.height));
     addChild(node);
 }
 
@@ -418,7 +418,7 @@ void CocosDenshionTest::updateVolumes(float)
 
 void CocosDenshionTestScene::runThisTest()
 {
-    auto layer = new (std::nothrow) CocosDenshionTest();
+    auto layer = new CocosDenshionTest();
     addChild(layer);
     layer->autorelease();
 

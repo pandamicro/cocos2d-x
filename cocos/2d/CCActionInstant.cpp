@@ -28,6 +28,7 @@
 #include "2d/CCActionInstant.h"
 #include "2d/CCNode.h"
 #include "2d/CCSprite.h"
+#include "base/CCScriptSupport.h"
 
 #if defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -61,7 +62,7 @@ void ActionInstant::update(float time) {
 
 Show* Show::create() 
 {
-    Show* ret = new (std::nothrow) Show();
+    Show* ret = new Show();
 
     if (ret) {
         ret->autorelease();
@@ -83,7 +84,7 @@ ActionInstant* Show::reverse() const
 Show * Show::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Show();
+	auto a = new Show();
 	a->autorelease();
 	return a;
 }
@@ -93,7 +94,7 @@ Show * Show::clone() const
 //
 Hide * Hide::create() 
 {
-    Hide *ret = new (std::nothrow) Hide();
+    Hide *ret = new Hide();
 
     if (ret) {
         ret->autorelease();
@@ -115,7 +116,7 @@ ActionInstant *Hide::reverse() const
 Hide * Hide::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Hide();
+	auto a = new Hide();
 	a->autorelease();
 	return a;
 }
@@ -125,7 +126,7 @@ Hide * Hide::clone() const
 //
 ToggleVisibility * ToggleVisibility::create()
 {
-    ToggleVisibility *ret = new (std::nothrow) ToggleVisibility();
+    ToggleVisibility *ret = new ToggleVisibility();
 
     if (ret)
     {
@@ -149,7 +150,7 @@ ToggleVisibility * ToggleVisibility::reverse() const
 ToggleVisibility * ToggleVisibility::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) ToggleVisibility();
+	auto a = new ToggleVisibility();
 	a->autorelease();
 	return a;
 }
@@ -159,7 +160,7 @@ ToggleVisibility * ToggleVisibility::clone() const
 //
 RemoveSelf * RemoveSelf::create(bool isNeedCleanUp /*= true*/) 
 {
-	RemoveSelf *ret = new (std::nothrow) RemoveSelf();
+	RemoveSelf *ret = new RemoveSelf();
 
 	if (ret && ret->init(isNeedCleanUp)) {
 		ret->autorelease();
@@ -186,7 +187,7 @@ RemoveSelf *RemoveSelf::reverse() const
 RemoveSelf * RemoveSelf::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) RemoveSelf();
+	auto a = new RemoveSelf();
 	a->init(_isNeedCleanUp);
 	a->autorelease();
 	return a;
@@ -198,7 +199,7 @@ RemoveSelf * RemoveSelf::clone() const
 
 FlipX *FlipX::create(bool x)
 {
-    FlipX *ret = new (std::nothrow) FlipX();
+    FlipX *ret = new FlipX();
 
     if (ret && ret->initWithFlipX(x)) {
         ret->autorelease();
@@ -227,7 +228,7 @@ FlipX* FlipX::reverse() const
 FlipX * FlipX::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) FlipX();
+	auto a = new FlipX();
 	a->initWithFlipX(_flipX);
 	a->autorelease();
 	return a;
@@ -238,7 +239,7 @@ FlipX * FlipX::clone() const
 
 FlipY * FlipY::create(bool y)
 {
-    FlipY *ret = new (std::nothrow) FlipY();
+    FlipY *ret = new FlipY();
 
     if (ret && ret->initWithFlipY(y)) {
         ret->autorelease();
@@ -267,7 +268,7 @@ FlipY* FlipY::reverse() const
 FlipY * FlipY::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) FlipY();
+	auto a = new FlipY();
 	a->initWithFlipY(_flipY);
 	a->autorelease();
 	return a;
@@ -279,7 +280,7 @@ FlipY * FlipY::clone() const
 
 Place* Place::create(const Vec2& pos)
 {
-    Place *ret = new (std::nothrow) Place();
+    Place *ret = new Place();
 
     if (ret && ret->initWithPosition(pos)) {
         ret->autorelease();
@@ -298,7 +299,7 @@ bool Place::initWithPosition(const Vec2& pos) {
 Place * Place::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Place();
+	auto a = new Place();
 	a->initWithPosition(_position);
 	a->autorelease();
 	return a;
@@ -321,7 +322,7 @@ void Place::update(float time) {
 
 CallFunc * CallFunc::create(const std::function<void()> &func)
 {
-    CallFunc *ret = new (std::nothrow) CallFunc();
+    CallFunc *ret = new CallFunc();
 
     if (ret && ret->initWithFunction(func) ) {
         ret->autorelease();
@@ -334,7 +335,7 @@ CallFunc * CallFunc::create(const std::function<void()> &func)
 
 CallFunc * CallFunc::create(Ref* selectorTarget, SEL_CallFunc selector) 
 {
-    CallFunc *ret = new (std::nothrow) CallFunc();
+    CallFunc *ret = new CallFunc();
 
     if (ret && ret->initWithTarget(selectorTarget)) {
         ret->_callFunc = selector;
@@ -375,7 +376,7 @@ CallFunc::~CallFunc()
 CallFunc * CallFunc::clone() const
     {
     // no copy constructor
-    auto a = new (std::nothrow) CallFunc();
+    auto a = new CallFunc();
     if( _selectorTarget) {
         a->initWithTarget(_selectorTarget);
         a->_callFunc = _callFunc;
@@ -413,7 +414,7 @@ void CallFunc::execute() {
 
 CallFuncN * CallFuncN::create(const std::function<void(Node*)> &func)
 {
-    auto ret = new (std::nothrow) CallFuncN();
+    auto ret = new CallFuncN();
 
     if (ret && ret->initWithFunction(func) ) {
         ret->autorelease();
@@ -424,10 +425,10 @@ CallFuncN * CallFuncN::create(const std::function<void(Node*)> &func)
     return nullptr;
 }
 
-// FIXME: deprecated
+// XXX deprecated
 CallFuncN * CallFuncN::create(Ref* selectorTarget, SEL_CallFuncN selector)
 {
-    CallFuncN *ret = new (std::nothrow) CallFuncN();
+    CallFuncN *ret = new CallFuncN();
 
     if (ret && ret->initWithTarget(selectorTarget, selector))
     {
@@ -467,7 +468,7 @@ bool CallFuncN::initWithTarget(Ref* selectorTarget, SEL_CallFuncN selector)
 CallFuncN * CallFuncN::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) CallFuncN();
+	auto a = new CallFuncN();
 
     if( _selectorTarget) {
         a->initWithTarget(_selectorTarget, _callFuncN);

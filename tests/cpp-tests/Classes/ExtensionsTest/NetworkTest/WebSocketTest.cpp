@@ -69,7 +69,7 @@ WebSocketTestLayer::WebSocketTestLayer()
     // Back Menu
     auto itemBack = MenuItemFont::create("Back", CC_CALLBACK_1(WebSocketTestLayer::toExtensionsMainLayer, this));
     itemBack->setPosition(Vec2(VisibleRect::rightBottom().x - 50, VisibleRect::rightBottom().y + 25));
-    auto menuBack = Menu::create(itemBack, nullptr);
+    auto menuBack = Menu::create(itemBack, NULL);
     menuBack->setPosition(Vec2::ZERO);
     addChild(menuBack);
     
@@ -166,15 +166,15 @@ void WebSocketTestLayer::onClose(network::WebSocket* ws)
     log("websocket instance (%p) closed.", ws);
     if (ws == _wsiSendText)
     {
-        _wsiSendText = nullptr;
+        _wsiSendText = NULL;
     }
     else if (ws == _wsiSendBinary)
     {
-        _wsiSendBinary = nullptr;
+        _wsiSendBinary = NULL;
     }
     else if (ws == _wsiError)
     {
-        _wsiError = nullptr;
+        _wsiError = NULL;
     }
     // Delete websocket instance.
     CC_SAFE_DELETE(ws);
@@ -193,7 +193,7 @@ void WebSocketTestLayer::onError(network::WebSocket* ws, const network::WebSocke
 
 void WebSocketTestLayer::toExtensionsMainLayer(cocos2d::Ref *sender)
 {
-    auto scene = new (std::nothrow) ExtensionsTestScene();
+    auto scene = new ExtensionsTestScene();
     scene->runThisTest();
     scene->release();
 }
@@ -242,7 +242,7 @@ void WebSocketTestLayer::onMenuSendBinaryClicked(cocos2d::Ref *sender)
 void runWebSocketTest()
 {
     auto scene = Scene::create();
-    auto layer = new (std::nothrow) WebSocketTestLayer();
+    auto layer = new WebSocketTestLayer();
     scene->addChild(layer);
     
     Director::getInstance()->replaceScene(scene);

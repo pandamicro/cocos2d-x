@@ -115,7 +115,7 @@ public:
     virtual const BlendFunc &getBlendFunc() const override;
 
     virtual Sprite * getLetter(int ID);
-    virtual Node * getChildByTag(int tag) const override;
+    virtual Node * getChildByTag(int tag) override;
 
     virtual void setColor(const Color3B& color) override;
 
@@ -124,12 +124,13 @@ public:
 
     virtual std::string getDescription() const override;
 #if CC_LABELBMFONT_DEBUG_DRAW
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
 #endif
 
 private:
 #if CC_LABELBMFONT_DEBUG_DRAW
-    DrawNode *_debugDrawNode;
+    CustomCommand   _customDebugDrawCommand;
+    void drawDebugData(const Mat4& transform, bool transformUpdated);
 #endif
     
     // name of fntFile

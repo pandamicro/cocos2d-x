@@ -58,9 +58,14 @@ public:
 
     LabelFNTSpriteActions();
     virtual void step(float dt);
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
+
+protected:
+    CustomCommand _renderCmd;
+    void onDraw(const Mat4 &transform, bool transformUpdated);
 };
 
 class LabelFNTPadding : public AtlasDemoNew
@@ -219,8 +224,14 @@ public:
 
     LabelFNTBounds();
     
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
+
+protected:
+    CustomCommand _renderCmd;
+    void onDraw(const Mat4 &transform, bool transformUpdated);
+    Label *label1;
 };
 
 class LabelTTFLongLineWrapping : public AtlasDemoNew
@@ -419,6 +430,23 @@ public:
 
     LabelTTFOldNew();
 
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
+
+    virtual std::string title() const override;
+    virtual std::string subtitle() const override;
+
+protected:
+    CustomCommand _renderCmd;
+    void onDraw(const Mat4 &transform, bool transformUpdated);
+};
+
+class LabelTTFLargeText : public AtlasDemoNew
+{
+public:
+    CREATE_FUNC(LabelTTFLargeText);
+
+    LabelTTFLargeText();
+
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
 };
@@ -463,58 +491,6 @@ public:
     CREATE_FUNC(LabelIssue4428Test);
 
     LabelIssue4428Test();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-};
-
-class LabelIssue4999Test : public AtlasDemoNew
-{
-public:
-    CREATE_FUNC(LabelIssue4999Test);
-
-    LabelIssue4999Test();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-};
-
-class LabelLineHeightTest : public AtlasDemoNew
-{
-public:
-    CREATE_FUNC(LabelLineHeightTest);
-
-    LabelLineHeightTest();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-
-    void sliderEvent(Ref *sender, ui::Slider::EventType type);
-private:
-    Label* label;
-};
-
-class LabelAdditionalKerningTest : public AtlasDemoNew
-{
-public:
-    CREATE_FUNC(LabelAdditionalKerningTest);
-
-    LabelAdditionalKerningTest();
-
-    virtual std::string title() const override;
-    virtual std::string subtitle() const override;
-
-    void sliderEvent(Ref *sender, ui::Slider::EventType type);
-private:
-    Label* label;
-};
-
-class LabelIssue8492Test : public AtlasDemoNew
-{
-public:
-    CREATE_FUNC(LabelIssue8492Test);
-
-    LabelIssue8492Test();
 
     virtual std::string title() const override;
     virtual std::string subtitle() const override;

@@ -1,5 +1,5 @@
 //
-// ClippingNodeTest
+// Clipping Demo
 // 
 //
 // by Pierre-David Bélanger
@@ -31,8 +31,7 @@ static std::function<Layer*()> createFunctions[] = {
     CL(RawStencilBufferTest3),
     CL(RawStencilBufferTest4),
     CL(RawStencilBufferTest5),
-    CL(RawStencilBufferTest6),
-    CL(ClippingToRenderTextureTest),
+    CL(RawStencilBufferTest6)
 };
 
 static int sceneIdx=-1;
@@ -103,7 +102,7 @@ std::string BaseClippingNodeTest::subtitle() const
 
 void BaseClippingNodeTest::restartCallback(Ref* sender)
 {
-	Scene *s = new (std::nothrow) ClippingNodeTestScene();
+	Scene *s = new ClippingNodeTestScene();
 	s->addChild(restartAction());
 	Director::getInstance()->replaceScene(s);
     s->release();
@@ -111,7 +110,7 @@ void BaseClippingNodeTest::restartCallback(Ref* sender)
 
 void BaseClippingNodeTest::nextCallback(Ref* sender)
 {
-	Scene *s = new (std::nothrow) ClippingNodeTestScene();
+	Scene *s = new ClippingNodeTestScene();
 	s->addChild(nextAction());
 	Director::getInstance()->replaceScene(s);
     s->release();
@@ -119,7 +118,7 @@ void BaseClippingNodeTest::nextCallback(Ref* sender)
 
 void BaseClippingNodeTest::backCallback(Ref* sender)
 {
-	Scene *s = new (std::nothrow) ClippingNodeTestScene();
+	Scene *s = new ClippingNodeTestScene();
 	s->addChild(backAction());
 	Director::getInstance()->replaceScene(s);
     s->release();
@@ -149,17 +148,17 @@ void BasicTest::setup()
     
     auto stencil = this->stencil();
     stencil->setTag( kTagStencilNode );
-    stencil->setPosition(50, 50);
+    stencil->setPosition( Vec2(50, 50) );
     
     auto clipper = this->clipper();
     clipper->setTag( kTagClipperNode );
     clipper->setAnchorPoint(Vec2(0.5, 0.5));
-    clipper->setPosition(s.width / 2 - 50, s.height / 2 - 50);
+    clipper->setPosition( Vec2(s.width / 2 - 50, s.height / 2 - 50) );
     clipper->setStencil(stencil);
     this->addChild(clipper);
     
     auto content = this->content();
-    content->setPosition(50, 50);
+    content->setPosition( Vec2(50, 50) );
     clipper->addChild(content);
 }
 
@@ -171,7 +170,7 @@ Action* BasicTest::actionRotate()
 Action* BasicTest::actionScale()
 {
     auto scale = ScaleBy::create(1.33f, 1.5f);
-    return RepeatForever::create(Sequence::create(scale, scale->reverse(), nullptr));
+    return RepeatForever::create(Sequence::create(scale, scale->reverse(), NULL));
 }
 
 DrawNode* BasicTest::shape()
@@ -196,7 +195,7 @@ Sprite* BasicTest::grossini()
 
 Node* BasicTest::stencil()
 {
-    return nullptr;
+    return NULL;
 }
 
 ClippingNode* BasicTest::clipper()
@@ -206,7 +205,7 @@ ClippingNode* BasicTest::clipper()
 
 Node* BasicTest::content()
 {
-    return nullptr;
+    return NULL;
 }
 
 
@@ -353,7 +352,7 @@ void NestedTest::setup()
         auto clipper = ClippingNode::create();
         clipper->setContentSize(Size(size, size));
         clipper->setAnchorPoint(Vec2(0.5, 0.5));
-        clipper->setPosition(parent->getContentSize().width / 2, parent->getContentSize().height / 2);
+        clipper->setPosition( Vec2(parent->getContentSize().width / 2, parent->getContentSize().height / 2) );
         clipper->setAlphaThreshold(0.05f);
         clipper->runAction(RepeatForever::create(RotateBy::create(i % 3 ? 1.33 : 1.66, i % 2 ? 90 : -90)));
         parent->addChild(clipper);
@@ -361,7 +360,7 @@ void NestedTest::setup()
         auto stencil = Sprite::create(s_pathGrossini);
         stencil->setScale( 2.5 - (i * (2.5 / depth)) );
         stencil->setAnchorPoint( Vec2(0.5, 0.5) );
-        stencil->setPosition(clipper->getContentSize().width / 2, clipper->getContentSize().height / 2);
+        stencil->setPosition( Vec2(clipper->getContentSize().width / 2, clipper->getContentSize().height / 2) );
         stencil->setVisible(false);
         stencil->runAction(Sequence::createWithTwoActions(DelayTime::create(i), Show::create()));
         clipper->setStencil(stencil);
@@ -486,7 +485,7 @@ void ScrollViewDemo::setup()
     clipper->setTag( kTagClipperNode );
     clipper->setContentSize(  Size(200, 200) );
     clipper->setAnchorPoint(  Vec2(0.5, 0.5) );
-    clipper->setPosition(this->getContentSize().width / 2, this->getContentSize().height / 2);
+    clipper->setPosition( Vec2(this->getContentSize().width / 2, this->getContentSize().height / 2) );
     clipper->runAction(RepeatForever::create(RotateBy::create(1, 45)));
     this->addChild(clipper);
 
@@ -504,7 +503,7 @@ void ScrollViewDemo::setup()
     auto content = Sprite::create(s_back2);
     content->setTag( kTagContentNode );
     content->setAnchorPoint(  Vec2(0.5, 0.5) );
-    content->setPosition(clipper->getContentSize().width / 2, clipper->getContentSize().height / 2);
+    content->setPosition( Vec2(clipper->getContentSize().width / 2, clipper->getContentSize().height / 2) );
     clipper->addChild(content);
     
     _scrolling = false;
@@ -602,7 +601,7 @@ void RawStencilBufferTest::setup()
     Director::getInstance()->setAlphaBlending(true);
 }
 
-void RawStencilBufferTest::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void RawStencilBufferTest::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {    
     auto winPoint = Vec2(Director::getInstance()->getWinSize());
     
@@ -642,7 +641,7 @@ void RawStencilBufferTest::draw(Renderer *renderer, const Mat4 &transform, uint3
         director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
         
         _modelViewTransform = this->transform(transform);
-        _spritesStencil.at(i)->visit(renderer, _modelViewTransform, flags);
+        _spritesStencil.at(i)->visit(renderer, _modelViewTransform, transformUpdated);
         director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
                 
         iter->init(_globalZOrder);
@@ -652,7 +651,7 @@ void RawStencilBufferTest::draw(Renderer *renderer, const Mat4 &transform, uint3
         
         director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
         _modelViewTransform = this->transform(transform);
-        _sprites.at(i)->visit(renderer, _modelViewTransform, flags);
+        _sprites.at(i)->visit(renderer, _modelViewTransform, transformUpdated);
         director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
     }
     
@@ -677,61 +676,15 @@ void RawStencilBufferTest::onBeforeDrawClip(int planeIndex, const Vec2& pt)
 {
     this->setupStencilForClippingOnPlane(planeIndex);
     CHECK_GL_ERROR_DEBUG();
-
-    Vec2 vertices[] = {
-        Vec2::ZERO,
-        Vec2(pt.x, 0),
-        pt,
-        Vec2(0, pt.y)
-    };
-    
-    auto glProgram= GLProgramCache::getInstance()->getGLProgram(GLProgram::SHADER_NAME_POSITION_U_COLOR);
-    
-    int colorLocation = glProgram->getUniformLocation("u_color");
-    CHECK_GL_ERROR_DEBUG();
-
-    Color4F color(1, 1, 1, 1);
-    
-    glProgram->use();
-    glProgram->setUniformsForBuiltins();
-    glProgram->setUniformLocationWith4fv(colorLocation, (GLfloat*) &color.r, 1);
-    
-    GL::enableVertexAttribs( GL::VERTEX_ATTRIB_FLAG_POSITION );
-    
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-    
-    CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, 4);
+    DrawPrimitives::drawSolidRect(Vec2::ZERO, pt, Color4F(1, 1, 1, 1));
 }
 
 void RawStencilBufferTest::onBeforeDrawSprite(int planeIndex, const Vec2& pt)
 {
     this->setupStencilForDrawingOnPlane(planeIndex);
     CHECK_GL_ERROR_DEBUG();
-
-    Vec2 vertices[] = {
-        Vec2::ZERO,
-        Vec2(pt.x, 0),
-        pt,
-        Vec2(0, pt.y)
-    };
-
-    auto glProgram = GLProgramCache::getInstance()->getGLProgram(GLProgram::SHADER_NAME_POSITION_U_COLOR);
-
-    int colorLocation = glProgram->getUniformLocation("u_color");
-    CHECK_GL_ERROR_DEBUG();
-
-    Color4F color = _planeColor[planeIndex];
-    glProgram->use();
-    glProgram->setUniformsForBuiltins();
-    glProgram->setUniformLocationWith4fv(colorLocation, (GLfloat*) &color.r, 1);
-
-    GL::enableVertexAttribs( GL::VERTEX_ATTRIB_FLAG_POSITION );
-
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, 4);
+    
+    DrawPrimitives::drawSolidRect(Vec2::ZERO, pt, _planeColor[planeIndex]);
 }
 
 void RawStencilBufferTest::setupStencilForClippingOnPlane(GLint plane)
@@ -887,7 +840,7 @@ void RawStencilBufferTest6::setup()
     glFlush();
     glReadPixels(0, 0, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &bits);
     auto clearToZeroLabel = Label::createWithTTF(String::createWithFormat("00=%02x", bits[0])->getCString(), "fonts/arial.ttf", 20);
-    clearToZeroLabel->setPosition((winPoint.x / 3) * 1, winPoint.y - 10);
+    clearToZeroLabel->setPosition( Vec2((winPoint.x / 3) * 1, winPoint.y - 10) );
     this->addChild(clearToZeroLabel);
     glStencilMask(0x0F);
     glClearStencil(0xAA);
@@ -895,7 +848,7 @@ void RawStencilBufferTest6::setup()
     glFlush();
     glReadPixels(0, 0, 1, 1, GL_STENCIL_INDEX, GL_UNSIGNED_BYTE, &bits);
     auto clearToMaskLabel = Label::createWithTTF(String::createWithFormat("0a=%02x", bits[0])->getCString(), "fonts/arial.ttf", 20);
-    clearToMaskLabel->setPosition((winPoint.x / 3) * 2, winPoint.y - 10);
+    clearToMaskLabel->setPosition( Vec2((winPoint.x / 3) * 2, winPoint.y - 10) );
     this->addChild(clearToMaskLabel);
 #endif
     glStencilMask(~0);
@@ -907,33 +860,7 @@ void RawStencilBufferTest6::setupStencilForClippingOnPlane(GLint plane)
     glStencilMask(planeMask);
     glStencilFunc(GL_NEVER, 0, planeMask);
     glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
-  
-    Vec2 pt = Director::getInstance()->getWinSize();
-    Vec2 vertices[] = {
-        Vec2::ZERO,
-        Vec2(pt.x, 0),
-        pt,
-        Vec2(0, pt.y)
-    };
-
-    auto glProgram = GLProgramCache::getInstance()->getGLProgram(GLProgram::SHADER_NAME_POSITION_U_COLOR);
-
-    int colorLocation = glProgram->getUniformLocation("u_color");
-    CHECK_GL_ERROR_DEBUG();
-
-    Color4F color(1, 1, 1, 1);
-
-    glProgram->use();
-    glProgram->setUniformsForBuiltins();
-    glProgram->setUniformLocationWith4fv(colorLocation, (GLfloat*) &color.r, 1);
-
-    GL::enableVertexAttribs( GL::VERTEX_ATTRIB_FLAG_POSITION );
-
-    glVertexAttribPointer(GLProgram::VERTEX_ATTRIB_POSITION, 2, GL_FLOAT, GL_FALSE, 0, vertices);
-    glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-
-    CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, 4);
-    
+    DrawPrimitives::drawSolidRect(Vec2::ZERO, Vec2(Director::getInstance()->getWinSize()), Color4F(1, 1, 1, 1));
     glStencilFunc(GL_NEVER, planeMask, planeMask);
     glStencilOp(GL_REPLACE, GL_KEEP, GL_KEEP);
     glDisable(GL_DEPTH_TEST);
@@ -962,143 +889,6 @@ void RawStencilBufferTest6::setupStencilForDrawingOnPlane(GLint plane)
 }
 
 //#endif // COCOS2D_DEBUG > 1
-
-//ClippingToRenderTextureTest
-
-std::string ClippingToRenderTextureTest::title() const
-{
-    return "Clipping to RenderTexture";
-}
-
-std::string ClippingToRenderTextureTest::subtitle() const
-{
-    return "Both should look the same";
-}
-
-void ClippingToRenderTextureTest::setup()
-{
-    auto button = MenuItemFont::create("Reproduce bug", [&](Ref *sender) {
-        enumerateChildren("remove me [0-9]", [&](Node *node) {
-            this->removeChild(node);
-            this->reproduceBug();
-            return false;
-        }
-                          );
-    });
-
-    auto s = Director::getInstance()->getWinSize();
-    // create menu, it's an autorelease object
-    auto menu = Menu::create(button, nullptr);
-    menu->setPosition(Point(s.width/2, s.height/2));
-    this->addChild(menu, 1);
-
-    expectedBehaviour();
-}
-
-void ClippingToRenderTextureTest::expectedBehaviour()
-{
-    auto director = Director::getInstance();
-    Size visibleSize = director->getVisibleSize();
-    Point origin = director->getVisibleOrigin();
-
-
-    // add "HelloWorld" splash screen"
-    auto sprite = Sprite::create("Images/grossini.png");
-
-    // position the sprite on the center of the screen
-    sprite->setPosition(Point(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-    // add the sprite as a child to this layer
-    this->addChild(sprite, 0);
-    sprite->setName("remove me 0");
-
-    // container node that will contain the clippingNode
-    auto container = Node::create();
-    this->addChild(container);
-    container->setName("remove me 1");
-
-    auto stencil = DrawNode::create();
-    Point triangle[3];
-    triangle[0] = Point(-50, -50);
-    triangle[1] = Point(50, -50);
-    triangle[2] = Point(0, 50);
-    Color4F green(0, 1, 0, 1);
-    stencil->drawPolygon(triangle, 3, green, 0, green);
-
-    auto clipper = ClippingNode::create();
-    clipper->setAnchorPoint(Point(0.5, 0.5));
-    clipper->setPosition( Point(visibleSize.width/2, visibleSize.height/2) );
-    clipper->setStencil(stencil);
-    clipper->setInverted(true);
-    container->addChild(clipper, 1);
-
-
-    auto img = DrawNode::create();
-    triangle[0] = Point(-200, -200);
-    triangle[1] = Point(200, -200);
-    triangle[2] = Point(0, 200);
-    Color4F red(1, 0, 0, 1);
-    img->drawPolygon(triangle, 3, red, 0, red);
-    clipper->addChild(img);
-}
-
-void ClippingToRenderTextureTest::reproduceBug()
-{
-    auto director = Director::getInstance();
-    Size visibleSize = director->getVisibleSize();
-    Point origin = director->getVisibleOrigin();
-
-
-    // add "HelloWorld" splash screen"
-    auto sprite = Sprite::create("Images/grossini.png");
-
-    // position the sprite on the center of the screen
-    sprite->setPosition(Point(visibleSize.width/2 + origin.x, visibleSize.height/2 + origin.y));
-
-    // add the sprite as a child to this layer
-    this->addChild(sprite, 0);
-
-
-    // container node that will contain the clippingNode
-    auto container = Node::create();
-    container->retain();
-
-    auto stencil = DrawNode::create();
-    Point triangle[3];
-    triangle[0] = Point(-50, -50);
-    triangle[1] = Point(50, -50);
-    triangle[2] = Point(0, 50);
-    Color4F green(0, 1, 0, 1);
-    stencil->drawPolygon(triangle, 3, green, 0, green);
-
-    auto clipper = ClippingNode::create();
-    clipper->setAnchorPoint(Point(0.5, 0.5));
-    clipper->setPosition( Point(visibleSize.width/2, visibleSize.height/2) );
-    clipper->setStencil(stencil);
-    clipper->setInverted(true);
-    container->addChild(clipper, 1);
-
-
-    auto img = DrawNode::create();
-    triangle[0] = Point(-200, -200);
-    triangle[1] = Point(200, -200);
-    triangle[2] = Point(0, 200);
-    Color4F red(1, 0, 0, 1);
-    img->drawPolygon(triangle, 3, red, 0, red);
-    clipper->addChild(img);
-
-    // container rendered on Texture the size of the screen
-    RenderTexture* rt = RenderTexture::create(visibleSize.width, visibleSize.height);
-    rt->setPosition(visibleSize.width/2, visibleSize.height/2);
-    this->addChild(rt);
-
-    rt->beginWithClear(0.3, 0, 0, 1);
-    container->visit();
-    rt->end();
-}
-
-
-// main entry point
 
 void ClippingNodeTestScene::runThisTest()
 {

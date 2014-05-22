@@ -7,12 +7,15 @@
 #include "GUI/CCControlExtension/CCControlExtensions.h"
 #include "GUI/CCScrollView/CCScrollView.h"
 #include "GUI/CCScrollView/CCTableView.h"
+#include "GUI/CCEditBox/CCEditBox.h"
 
 // Physics integration
 #include "physics-nodes/CCPhysicsDebugNode.h"
 #include "physics-nodes/CCPhysicsSprite.h"
 
 #include "assets-manager/AssetsManager.h"
-#include "ExtensionDeprecated.h"
+#include "assets-manager/CCEventAssetsManager.h"
+#include "assets-manager/CCEventListenerAssetsManager.h"
+#include "assets-manager/Manifest.h"
 
 #endif /* __COCOS2D_EXT_H__ */

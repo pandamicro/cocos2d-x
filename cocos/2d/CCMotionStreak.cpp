@@ -26,12 +26,14 @@ THE SOFTWARE.
 
 #include "2d/CCMotionStreak.h"
 #include "math/CCVertex.h"
+#include "base/ccMacros.h"
 #include "base/CCDirector.h"
 #include "renderer/CCTextureCache.h"
 #include "renderer/ccGLStateCache.h"
-#include "renderer/CCTexture2D.h"
-#include "renderer/CCRenderer.h"
+#include "renderer/CCGLProgram.h"
 #include "renderer/CCGLProgramState.h"
+#include "renderer/CCCustomCommand.h"
+#include "renderer/CCRenderer.h"
 
 NS_CC_BEGIN
 
@@ -67,7 +69,7 @@ MotionStreak::~MotionStreak()
 
 MotionStreak* MotionStreak::create(float fade, float minSeg, float stroke, const Color3B& color, const std::string& path)
 {
-    MotionStreak *ret = new (std::nothrow) MotionStreak();
+    MotionStreak *ret = new MotionStreak();
     if (ret && ret->initWithFade(fade, minSeg, stroke, color, path))
     {
         ret->autorelease();
@@ -80,7 +82,7 @@ MotionStreak* MotionStreak::create(float fade, float minSeg, float stroke, const
 
 MotionStreak* MotionStreak::create(float fade, float minSeg, float stroke, const Color3B& color, Texture2D* texture)
 {
-    MotionStreak *ret = new (std::nothrow) MotionStreak();
+    MotionStreak *ret = new MotionStreak();
     if (ret && ret->initWithFade(fade, minSeg, stroke, color, texture))
     {
         ret->autorelease();
@@ -372,7 +374,7 @@ void MotionStreak::reset()
     _nuPoints = 0;
 }
 
-void MotionStreak::onDraw(const Mat4 &transform, uint32_t flags)
+void MotionStreak::onDraw(const Mat4 &transform, bool transformUpdated)
 {  
     getGLProgram()->use();
     getGLProgram()->setUniformsForBuiltins(transform);
@@ -402,12 +404,12 @@ void MotionStreak::onDraw(const Mat4 &transform, uint32_t flags)
     CC_INCREMENT_GL_DRAWN_BATCHES_AND_VERTICES(1, _nuPoints*2);
 }
 
-void MotionStreak::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void MotionStreak::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
     if(_nuPoints <= 1)
         return;
     _customCommand.init(_globalZOrder);
-    _customCommand.func = CC_CALLBACK_0(MotionStreak::onDraw, this, transform, flags);
+    _customCommand.func = CC_CALLBACK_0(MotionStreak::onDraw, this, transform, transformUpdated);
     renderer->addCommand(&_customCommand);
 }
 

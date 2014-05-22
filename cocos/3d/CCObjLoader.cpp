@@ -16,13 +16,18 @@
 // version 0.9.0: Initial
 //
 
-#include "CCObjLoader.h"
+#include <cstdlib>
+#include <cstring>
+#include <cassert>
 
+#include <string>
+#include <vector>
+#include <map>
 #include <fstream>
 #include <sstream>
 
+#include "CCObjLoader.h"
 #include "platform/CCFileUtils.h"
-#include "base/ccUtils.h"
 
 NS_CC_BEGIN
 
@@ -97,7 +102,7 @@ static inline int parseInt(const char*& token)
 static inline float parseFloat(const char*& token)
 {
     token += strspn(token, " \t");
-    float f = (float)utils::atof(token);
+    float f = (float)atof(token);
     token += strcspn(token, " \t\r");
     return f;
 }
@@ -598,8 +603,7 @@ std::string ObjLoader::LoadObj(shapes_t& shapes, const char* filename, const cha
             
             std::vector<vertex_index> face;
             while (!isNewLine(token[0])) {
-                // fix warning, cast to int, i think int is enough
-                vertex_index vi = parseTriple(token, (int)v.size() / 3, (int)vn.size() / 3, (int)vt.size() / 2);
+                vertex_index vi = parseTriple(token, v.size() / 3, vn.size() / 3, vt.size() / 2);
                 face.push_back(vi);
                 auto n = strspn(token, " \t\r");
                 token += n;

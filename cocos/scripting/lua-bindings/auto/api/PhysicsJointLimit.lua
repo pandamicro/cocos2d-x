@@ -2,67 +2,60 @@
 --------------------------------
 -- @module PhysicsJointLimit
 -- @extend PhysicsJoint
--- @parent_module cc
 
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] setAnchr2 
 -- @param self
--- @param #vec2_table anchr2
+-- @param #cc.Vec2 vec2
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] setAnchr1 
 -- @param self
--- @param #vec2_table anchr1
+-- @param #cc.Vec2 vec2
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] setMax 
 -- @param self
--- @param #float max
+-- @param #float float
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] getAnchr2 
 -- @param self
--- @return vec2_table#vec2_table ret (return value: vec2_table)
+-- @return Vec2#Vec2 ret (return value: cc.Vec2)
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] getAnchr1 
 -- @param self
--- @return vec2_table#vec2_table ret (return value: vec2_table)
+-- @return Vec2#Vec2 ret (return value: cc.Vec2)
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] getMin 
 -- @param self
 -- @return float#float ret (return value: float)
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] getMax 
 -- @param self
 -- @return float#float ret (return value: float)
         
 --------------------------------
--- 
 -- @function [parent=#PhysicsJointLimit] setMin 
 -- @param self
--- @param #float min
+-- @param #float float
         
 --------------------------------
--- @overload self, cc.PhysicsBody, cc.PhysicsBody, vec2_table, vec2_table, float, float         
--- @overload self, cc.PhysicsBody, cc.PhysicsBody, vec2_table, vec2_table         
+-- overload function: construct(cc.PhysicsBody, cc.PhysicsBody, cc.Vec2, cc.Vec2, float, float)
+--          
+-- overload function: construct(cc.PhysicsBody, cc.PhysicsBody, cc.Vec2, cc.Vec2)
+--          
 -- @function [parent=#PhysicsJointLimit] construct
 -- @param self
--- @param #cc.PhysicsBody a
--- @param #cc.PhysicsBody b
--- @param #vec2_table anchr1
--- @param #vec2_table anchr2
--- @param #float min
--- @param #float max
+-- @param #cc.PhysicsBody physicsbody
+-- @param #cc.PhysicsBody physicsbody
+-- @param #cc.Vec2 vec2
+-- @param #cc.Vec2 vec2
+-- @param #float float
+-- @param #float float
 -- @return PhysicsJointLimit#PhysicsJointLimit ret (retunr value: cc.PhysicsJointLimit)
 
 return nil

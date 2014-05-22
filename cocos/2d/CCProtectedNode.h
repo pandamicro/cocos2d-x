@@ -33,8 +33,8 @@
 #include "2d/CCNode.h"
 
 NS_CC_BEGIN
-	
-class  CC_DLL ProtectedNode : public Node
+
+class CC_DLL ProtectedNode : public Node
 {
 public:
     static ProtectedNode * create(void);
@@ -127,7 +127,7 @@ public:
     
     /// @} end of Children and Parent
     
-    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
+    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, bool transformUpdated) override;
     
     virtual void cleanup() override;
     
@@ -162,7 +162,6 @@ public:
     virtual void updateDisplayedOpacity(GLubyte parentOpacity) override;
     virtual void updateDisplayedColor(const Color3B& parentColor) override;
     virtual void disableCascadeColor() override;
-    virtual void disableCascadeOpacity()override;
 CC_CONSTRUCTOR_ACCESS:
     ProtectedNode();
     virtual ~ProtectedNode();

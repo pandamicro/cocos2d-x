@@ -26,20 +26,25 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
 
-
+#include "CCGL.h"
 #include "2d/CCParticleSystemQuad.h"
 #include "2d/CCSpriteFrame.h"
 #include "2d/CCParticleBatchNode.h"
 #include "renderer/CCTextureAtlas.h"
-#include "renderer/ccGLStateCache.h"
-#include "renderer/CCRenderer.h"
 #include "base/CCDirector.h"
 #include "base/CCEventType.h"
 #include "base/CCConfiguration.h"
+#include "math/TransformUtils.h"
+#include "renderer/CCGLProgramState.h"
+#include "renderer/ccGLStateCache.h"
+#include "renderer/CCGLProgram.h"
+#include "renderer/CCRenderer.h"
+#include "renderer/CCQuadCommand.h"
+#include "renderer/CCCustomCommand.h"
+
+// extern
 #include "base/CCEventListenerCustom.h"
 #include "base/CCEventDispatcher.h"
-
-#include "deprecated/CCString.h"
 
 NS_CC_BEGIN
 
@@ -70,7 +75,7 @@ ParticleSystemQuad::~ParticleSystemQuad()
 
 ParticleSystemQuad * ParticleSystemQuad::create(const std::string& filename)
 {
-    ParticleSystemQuad *ret = new (std::nothrow) ParticleSystemQuad();
+    ParticleSystemQuad *ret = new ParticleSystemQuad();
     if (ret && ret->initWithFile(filename))
     {
         ret->autorelease();
@@ -81,7 +86,7 @@ ParticleSystemQuad * ParticleSystemQuad::create(const std::string& filename)
 }
 
 ParticleSystemQuad * ParticleSystemQuad::createWithTotalParticles(int numberOfParticles) {
-    ParticleSystemQuad *ret = new (std::nothrow) ParticleSystemQuad();
+    ParticleSystemQuad *ret = new ParticleSystemQuad();
     if (ret && ret->initWithTotalParticles(numberOfParticles))
     {
         ret->autorelease();
@@ -130,7 +135,7 @@ bool ParticleSystemQuad::initWithTotalParticles(int numberOfParticles)
 
 #if CC_ENABLE_CACHE_TEXTURE_DATA
         // Need to listen the event only when not use batchnode, because it will use VBO
-        auto listener = EventListenerCustom::create(EVENT_RENDERER_RECREATED, CC_CALLBACK_1(ParticleSystemQuad::listenRendererRecreated, this));
+        auto listener = EventListenerCustom::create(EVENT_COME_TO_FOREGROUND, CC_CALLBACK_1(ParticleSystemQuad::listenBackToForeground, this));
         _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 #endif
 
@@ -363,7 +368,7 @@ void ParticleSystemQuad::postStep()
 }
 
 // overriding draw method
-void ParticleSystemQuad::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void ParticleSystemQuad::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
     CCASSERT( _particleIdx == 0 || _particleIdx == _particleCount, "Abnormal error in particle quad");
     //quad command
@@ -444,10 +449,6 @@ void ParticleSystemQuad::setTotalParticles(int tp)
         _totalParticles = tp;
     }
     
-    // fixed issue #5762
-    // reset the emission rate
-    setEmissionRate(_totalParticles / _life);
-    
     resetSystem();
 }
 
@@ -508,7 +509,7 @@ void ParticleSystemQuad::setupVBO()
     CHECK_GL_ERROR_DEBUG();
 }
 
-void ParticleSystemQuad::listenRendererRecreated(EventCustom* event)
+void ParticleSystemQuad::listenBackToForeground(EventCustom* event)
 {
     if (Configuration::getInstance()->supportsShareableVAO())
     {
@@ -592,7 +593,7 @@ void ParticleSystemQuad::setBatchNode(ParticleBatchNode * batchNode)
 }
 
 ParticleSystemQuad * ParticleSystemQuad::create() {
-    ParticleSystemQuad *particleSystemQuad = new (std::nothrow) ParticleSystemQuad();
+    ParticleSystemQuad *particleSystemQuad = new ParticleSystemQuad();
     if (particleSystemQuad && particleSystemQuad->init())
     {
         particleSystemQuad->autorelease();

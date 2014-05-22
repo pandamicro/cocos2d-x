@@ -23,7 +23,7 @@ g_guisTests[] =
         "custom gui image Test",
         [](Ref* sender)
         {
-            CustomImageScene* pScene = new (std::nothrow) CustomImageScene();
+            CustomImageScene* pScene = new CustomImageScene();
             pScene->runThisTest();
             pScene->release();
         }
@@ -32,7 +32,7 @@ g_guisTests[] =
         "custom gui particle widget Test",
         [](Ref* sender)
         {
-            CustomParticleWidgetScene* pScene = new (std::nothrow) CustomParticleWidgetScene();
+            CustomParticleWidgetScene* pScene = new CustomParticleWidgetScene();
             pScene->runThisTest();
             pScene->release();
         }
@@ -63,8 +63,8 @@ void CustomGUITestMainLayer::onEnter()
     for (int i = 0; i < g_maxTests; ++i)
     {
         auto pItem = MenuItemFont::create(g_guisTests[i].name, g_guisTests[i].callback);
-//        pItem->setPosition(s.width / 2, s.height / 2);
-        pItem->setPosition(s.width / 2, s.height - (i + 1) * LINE_SPACE);
+//        pItem->setPosition(Vec2(s.width / 2, s.height / 2));
+        pItem->setPosition(Vec2(s.width / 2, s.height - (i + 1) * LINE_SPACE));
         _itemMenu->addChild(pItem, kItemTagBasic + i);
     }
     
@@ -122,17 +122,17 @@ void CustomGUITestScene::onEnter()
     //#endif
     MenuItemLabel* pMenuItem = MenuItemLabel::create(label, CC_CALLBACK_1(CustomGUITestScene::BackCallback, this));
     
-    Menu* pMenu = Menu::create(pMenuItem, nullptr);
+    Menu* pMenu = Menu::create(pMenuItem, NULL);
     
     pMenu->setPosition( Vec2::ZERO );
-    pMenuItem->setPosition(VisibleRect::right().x - 50, VisibleRect::bottom().y + 25);
+    pMenuItem->setPosition( Vec2( VisibleRect::right().x - 50, VisibleRect::bottom().y + 25) );
     
     addChild(pMenu, 1);
 }
 
 void CustomGUITestScene::runThisTest()
 {
-    Layer* pLayer = new (std::nothrow) CustomGUITestMainLayer();
+    Layer* pLayer = new CustomGUITestMainLayer();
     addChild(pLayer);
     pLayer->release();
     
@@ -141,7 +141,7 @@ void CustomGUITestScene::runThisTest()
 
 void CustomGUITestScene::BackCallback(Ref* pSender)
 {
-    CocoStudioGUITestScene* pScene = new (std::nothrow) CocoStudioGUITestScene();
+    CocoStudioGUITestScene* pScene = new CocoStudioGUITestScene();
     pScene->runThisTest();
     pScene->release();
 }

@@ -29,7 +29,8 @@
 #import "AppController.h"
 #import "AppDelegate.h"
 #import "RootViewController.h"
-#import "platform/ios/CCEAGLView-ios.h"
+#import "CCEAGLView.h"
+#include "ConfigParser.h"
 
 @implementation AppController
 
@@ -42,17 +43,15 @@ static AppDelegate s_sharedApplication;
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
 
-    cocos2d::Application *app = cocos2d::Application::getInstance();
-    app->initGLContextAttrs();
-    cocos2d::GLViewImpl::convertAttrs();
-
     // Override point for customization after application launch.
-
+    
+    ConfigParser::getInstance()->readConfig();
+    
     // Add the view controller's view to the window and display.
     window = [[UIWindow alloc] initWithFrame: [[UIScreen mainScreen] bounds]];
     CCEAGLView *eaglView = [CCEAGLView viewWithFrame: [window bounds]
-                                     pixelFormat: (NSString*)cocos2d::GLViewImpl::_pixelFormat
-                                     depthFormat: cocos2d::GLViewImpl::_depthFormat
+                                     pixelFormat: kEAGLColorFormatRGBA8
+                                     depthFormat: GL_DEPTH24_STENCIL8_OES
                               preserveBackbuffer: NO
                                       sharegroup: nil
                                    multiSampling: NO
@@ -82,10 +81,10 @@ static AppDelegate s_sharedApplication;
     [[UIApplication sharedApplication] setStatusBarHidden: YES];
 
     // IMPORTANT: Setting the GLView should be done after creating the RootViewController
-    cocos2d::GLView *glview = cocos2d::GLViewImpl::createWithEAGLView(eaglView);
+    cocos2d::GLView *glview = cocos2d::GLView::createWithEAGLView(eaglView);
     cocos2d::Director::getInstance()->setOpenGLView(glview);
 
-    app->run();
+    cocos2d::Application::getInstance()->run();
     return YES;
 }
 

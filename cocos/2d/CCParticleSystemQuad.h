@@ -28,7 +28,7 @@ THE SOFTWARE.
 #ifndef __CC_PARTICLE_SYSTEM_QUAD_H__
 #define __CC_PARTICLE_SYSTEM_QUAD_H__
 
-#include "2d/CCParticleSystem.h"
+#include  "CCParticleSystem.h"
 #include "renderer/CCQuadCommand.h"
 
 NS_CC_BEGIN
@@ -81,11 +81,11 @@ public:
      */
     void setTextureWithRect(Texture2D *texture, const Rect& rect);
 
-    /** listen the event that renderer was recreated on Android/WP8
+    /** listen the event that coming to foreground on Android
      * @js NA
      * @lua NA
      */
-    void listenRendererRecreated(EventCustom* event);
+    void listenBackToForeground(EventCustom* event);
 
     /**
      * @js NA
@@ -106,7 +106,7 @@ public:
      * @js NA
      * @lua NA
      */
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
 
     /**
      * @js NA

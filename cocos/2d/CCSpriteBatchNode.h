@@ -33,6 +33,7 @@ THE SOFTWARE.
 
 #include "2d/CCNode.h"
 #include "base/CCProtocols.h"
+#include "base/ccMacros.h"
 #include "renderer/CCTextureAtlas.h"
 #include "renderer/CCBatchCommand.h"
 
@@ -133,17 +134,16 @@ public:
     */
     virtual const BlendFunc& getBlendFunc() const override;
 
-    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
+    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated) override;
     
     using Node::addChild;
     virtual void addChild(Node * child, int zOrder, int tag) override;
-    virtual void addChild(Node * child, int zOrder, const std::string &name) override;
     virtual void reorderChild(Node *child, int zOrder) override;
         
     virtual void removeChild(Node *child, bool cleanup) override;
     virtual void removeAllChildrenWithCleanup(bool cleanup) override;
     virtual void sortAllChildren() override;
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
     virtual std::string getDescription() const override;
 
     /** Inserts a quad at a certain index into the texture atlas. The Sprite won't be added into the children array.

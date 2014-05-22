@@ -37,13 +37,10 @@ public:
 
 protected:
     bool initGLProgramState(const std::string &fragmentFilename);
-    Effect();
-    virtual ~Effect();
+    Effect() : _glprogramstate(nullptr)
+    {}
+    virtual ~Effect() {}
     GLProgramState *_glprogramstate;
-#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-    std::string _fragSource;
-    EventListenerCustom* _backgroundListener;
-#endif
 };
 
 class EffectSpriteTest : public ShaderTestDemo2

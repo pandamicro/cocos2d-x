@@ -49,7 +49,7 @@ ProtectedNode::~ProtectedNode()
 
 ProtectedNode * ProtectedNode::create(void)
 {
-	ProtectedNode * ret = new (std::nothrow) ProtectedNode();
+	ProtectedNode * ret = new ProtectedNode();
     if (ret && ret->init())
     {
         ret->autorelease();
@@ -249,7 +249,7 @@ void ProtectedNode::insertProtectedChild(cocos2d::Node *child, int z)
 {
     _reorderProtectedChildDirty = true;
     _protectedChildren.pushBack(child);
-    child->setLocalZOrder(z);
+    child->_setLocalZOrder(z);
 }
 
 void ProtectedNode::sortAllProtectedChildren()
@@ -265,10 +265,10 @@ void ProtectedNode::reorderProtectedChild(cocos2d::Node *child, int localZOrder)
     CCASSERT( child != nullptr, "Child must be non-nil");
     _reorderProtectedChildDirty = true;
     child->setOrderOfArrival(s_globalOrderOfArrival++);
-    child->setLocalZOrder(localZOrder);
+    child->_setLocalZOrder(localZOrder);
 }
 
-void ProtectedNode::visit(Renderer* renderer, const Mat4 &parentTransform, uint32_t parentFlags)
+void ProtectedNode::visit(Renderer* renderer, const Mat4 &parentTransform, bool parentTransformUpdated)
 {
     // quick return if not visible. children won't be drawn.
     if (!_visible)
@@ -276,7 +276,11 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4 &parentTransform, uint3
         return;
     }
     
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    bool dirty = _transformUpdated || parentTransformUpdated;
+    if(dirty)
+        _modelViewTransform = this->transform(parentTransform);
+    _transformUpdated = false;
+    
     
     // IMPORTANT:
     // To ease the migration to v3.0, we still support the Mat4 stack,
@@ -300,7 +304,7 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4 &parentTransform, uint3
         auto node = _children.at(i);
         
         if ( node && node->getLocalZOrder() < 0 )
-            node->visit(renderer, _modelViewTransform, flags);
+            node->visit(renderer, _modelViewTransform, dirty);
         else
             break;
     }
@@ -310,7 +314,7 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4 &parentTransform, uint3
         auto node = _protectedChildren.at(j);
         
         if ( node && node->getLocalZOrder() < 0 )
-            node->visit(renderer, _modelViewTransform, flags);
+            node->visit(renderer, _modelViewTransform, dirty);
         else
             break;
     }
@@ -318,35 +322,25 @@ void ProtectedNode::visit(Renderer* renderer, const Mat4 &parentTransform, uint3
     //
     // draw self
     //
-    if (isVisitableByVisitingCamera())
-        this->draw(renderer, _modelViewTransform, flags);
+    this->draw(renderer, _modelViewTransform, dirty);
     
     //
     // draw children and protectedChildren zOrder >= 0
     //
     for(auto it=_protectedChildren.cbegin()+j; it != _protectedChildren.cend(); ++it)
-        (*it)->visit(renderer, _modelViewTransform, flags);
+        (*it)->visit(renderer, _modelViewTransform, dirty);
     
     for(auto it=_children.cbegin()+i; it != _children.cend(); ++it)
-        (*it)->visit(renderer, _modelViewTransform, flags);
+        (*it)->visit(renderer, _modelViewTransform, dirty);
     
-    // FIX ME: Why need to set _orderOfArrival to 0??
-    // Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920
-    // setOrderOfArrival(0);
+    // reset for next frame
+    _orderOfArrival = 0;
     
     director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 }
 
 void ProtectedNode::onEnter()
 {
-#if CC_ENABLE_SCRIPT_BINDING
-    if (_scriptType == kScriptTypeJavascript)
-    {
-        if (ScriptEngineManager::sendNodeEventToJSExtended(this, kNodeOnEnter))
-            return;
-    }
-#endif
-    
     Node::onEnter();
     for( const auto &child: _protectedChildren)
         child->onEnter();
@@ -383,10 +377,9 @@ void ProtectedNode::updateDisplayedOpacity(GLubyte parentOpacity)
         for(auto child : _children){
             child->updateDisplayedOpacity(_displayedOpacity);
         }
-    }
-    
-    for(auto child : _protectedChildren){
-        child->updateDisplayedOpacity(_displayedOpacity);
+        for(auto child : _protectedChildren){
+            child->updateDisplayedOpacity(_displayedOpacity);
+        }
     }
 }
 
@@ -402,9 +395,9 @@ void ProtectedNode::updateDisplayedColor(const Color3B& parentColor)
         for(const auto &child : _children){
             child->updateDisplayedColor(_displayedColor);
         }
-    }
-    for(const auto &child : _protectedChildren){
-        child->updateDisplayedColor(_displayedColor);
+        for(const auto &child : _protectedChildren){
+            child->updateDisplayedColor(_displayedColor);
+        }
     }
 }
 
@@ -415,19 +408,6 @@ void ProtectedNode::disableCascadeColor()
     }
     for(auto child : _protectedChildren){
         child->updateDisplayedColor(Color3B::WHITE);
-    }
-}
-
-void ProtectedNode::disableCascadeOpacity()
-{
-    _displayedOpacity = _realOpacity;
-    
-    for(auto child : _children){
-        child->updateDisplayedOpacity(255);
-    }
-    
-    for(auto child : _protectedChildren){
-        child->updateDisplayedOpacity(255);
     }
 }
 

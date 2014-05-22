@@ -56,16 +56,15 @@
 
 #include "base/CCDirector.h"
 #include "base/CCScheduler.h"
-#include "platform/CCPlatformConfig.h"
+#include "base/CCPlatformConfig.h"
 #include "base/CCConfiguration.h"
 #include "2d/CCScene.h"
 #include "platform/CCFileUtils.h"
 #include "renderer/CCTextureCache.h"
+#include "CCGLView.h"
 #include "base/base64.h"
-#include "base/ccUtils.h"
 NS_CC_BEGIN
 
-extern const char* cocos2dVersion(void);
 //TODO: these general utils should be in a seperate class
 //
 // Trimming functions were taken from: http://stackoverflow.com/a/217605
@@ -131,7 +130,7 @@ static ssize_t mydprintf(int sock, const char *format, ...)
 static void sendPrompt(int fd)
 {
     const char prompt[] = "> ";
-    send(fd, prompt, strlen(prompt),0);
+    send(fd, prompt, sizeof(prompt),0);
 }
 
 static int printSceneGraph(int fd, Node* node, int level)
@@ -195,7 +194,7 @@ static const char* inet_ntop(int af, const void* src, char* dst, int cnt)
     memcpy(&(srcaddr.sin_addr), src, sizeof(srcaddr.sin_addr));
 
     srcaddr.sin_family = af;
-    if (WSAAddressToStringA((struct sockaddr*) &srcaddr, sizeof(struct sockaddr_in), 0, dst, (LPDWORD) &cnt) != 0)
+    if (WSAAddressToString((struct sockaddr*) &srcaddr, sizeof(struct sockaddr_in), 0, dst, (LPDWORD) &cnt) != 0)
     {
         return nullptr;
     }
@@ -222,7 +221,7 @@ static void _log(const char *format, va_list args)
     WCHAR wszBuf[MAX_LOG_LENGTH] = {0};
     MultiByteToWideChar(CP_UTF8, 0, buf, -1, wszBuf, sizeof(wszBuf));
     OutputDebugStringW(wszBuf);
-    WideCharToMultiByte(CP_ACP, 0, wszBuf, -1, buf, sizeof(buf), nullptr, FALSE);
+    WideCharToMultiByte(CP_ACP, 0, wszBuf, -1, buf, sizeof(buf), NULL, FALSE);
     printf("%s", buf);
     fflush(stdout);
 #else
@@ -237,7 +236,7 @@ static void _log(const char *format, va_list args)
 
 }
 
-// FIXME: Deprecated
+// XXX: Deprecated
 void CCLog(const char * format, ...)
 {
     va_list args;
@@ -296,9 +295,6 @@ Console::Console()
         { "director", "director commands, type -h or [director help] to list supported directives", std::bind(&Console::commandDirector, this, std::placeholders::_1, std::placeholders::_2) },
         { "touch", "simulate touch event via console, type -h or [touch help] to list supported directives", std::bind(&Console::commandTouch, this, std::placeholders::_1, std::placeholders::_2) },
         { "upload", "upload file. Args: [filename base64_encoded_data]", std::bind(&Console::commandUpload, this, std::placeholders::_1) },
-        { "version", "print version string ", [](int fd, const std::string& args) {
-            mydprintf(fd, "%s\n", cocos2dVersion());
-        } },
     };
 
      ;
@@ -337,7 +333,7 @@ bool Console::listenOnTCP(int port)
 #endif
 #endif
 
-    if ( (n = getaddrinfo(nullptr, serv, &hints, &res)) != 0) {
+    if ( (n = getaddrinfo(NULL, serv, &hints, &res)) != 0) {
         fprintf(stderr,"net_listen error for %s: %s", serv, gai_strerror(n));
         return false;
     }
@@ -359,9 +355,9 @@ bool Console::listenOnTCP(int port)
 #else
         close(listenfd);
 #endif
-    } while ( (res = res->ai_next) != nullptr);
+    } while ( (res = res->ai_next) != NULL);
     
-    if (res == nullptr) {
+    if (res == NULL) {
         perror("net_listen:");
         freeaddrinfo(ressave);
         return false;
@@ -372,14 +368,14 @@ bool Console::listenOnTCP(int port)
     if (res->ai_family == AF_INET) {
         char buf[INET_ADDRSTRLEN] = "";
         struct sockaddr_in *sin = (struct sockaddr_in*) res->ai_addr;
-        if( inet_ntop(res->ai_family, &sin->sin_addr, buf, sizeof(buf)) != nullptr )
+        if( inet_ntop(res->ai_family, &sin->sin_addr, buf, sizeof(buf)) != NULL )
             cocos2d::log("Console: listening on  %s : %d", buf, ntohs(sin->sin_port));
         else
             perror("inet_ntop");
     } else if (res->ai_family == AF_INET6) {
         char buf[INET6_ADDRSTRLEN] = "";
         struct sockaddr_in6 *sin = (struct sockaddr_in6*) res->ai_addr;
-        if( inet_ntop(res->ai_family, &sin->sin6_addr, buf, sizeof(buf)) != nullptr )
+        if( inet_ntop(res->ai_family, &sin->sin6_addr, buf, sizeof(buf)) != NULL )
             cocos2d::log("Console: listening on  %s : %d", buf, ntohs(sin->sin6_port));
         else
             perror("inet_ntop");
@@ -660,8 +656,8 @@ void Console::commandTouch(int fd, const std::string& args)
             if((argv.size() == 3) && (isFloat(argv[1]) && isFloat(argv[2])))
             {
                 
-                float x = utils::atof(argv[1].c_str());
-                float y = utils::atof(argv[2].c_str());
+                float x = std::atof(argv[1].c_str());
+                float y = std::atof(argv[2].c_str());
 
                 srand ((unsigned)time(nullptr));
                 _touchId = rand();
@@ -686,10 +682,10 @@ void Console::commandTouch(int fd, const std::string& args)
                 && (isFloat(argv[3])) && (isFloat(argv[4])))
             {
                 
-                float x1 = utils::atof(argv[1].c_str());
-                float y1 = utils::atof(argv[2].c_str());
-                float x2 = utils::atof(argv[3].c_str());
-                float y2 = utils::atof(argv[4].c_str());
+                float x1 = std::atof(argv[1].c_str());
+                float y1 = std::atof(argv[2].c_str());
+                float x2 = std::atof(argv[3].c_str());
+                float y2 = std::atof(argv[4].c_str());
 
                 srand ((unsigned)time(nullptr));
                 _touchId = rand();
@@ -1042,7 +1038,7 @@ void Console::loop()
         copy_set = _read_set;
         timeout_copy = timeout;
         
-        int nready = select(_maxfd+1, &copy_set, nullptr, nullptr, &timeout_copy);
+        int nready = select(_maxfd+1, &copy_set, NULL, NULL, &timeout_copy);
 
         if( nready == -1 )
         {

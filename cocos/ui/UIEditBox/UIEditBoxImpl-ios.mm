@@ -22,22 +22,20 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
  ****************************************************************************/
-#include "UIEditBoxImpl-ios.h"
+#include "CCEditBoxImplIOS.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
 #define kLabelZOrder  9999
 
-#include "UIEditBox.h"
-#include "base/CCDirector.h"
-#include "2d/CCLabel.h"
-#import "platform/ios/CCEAGLView-ios.h"
+#include "CCEditBox.h"
+#import "CCEAGLView.h"
 
-#define getEditBoxImplIOS() ((cocos2d::ui::EditBoxImplIOS*)editBox_)
+#define getEditBoxImplIOS() ((cocos2d::extension::EditBoxImplIOS*)editBox_)
 
 static const int CC_EDIT_BOX_PADDING = 5;
 
-@implementation UICustomUITextField
+@implementation CCCustomUITextField
 - (CGRect)textRectForBounds:(CGRect)bounds
 {
     auto glview = cocos2d::Director::getInstance()->getOpenGLView();
@@ -52,7 +50,7 @@ static const int CC_EDIT_BOX_PADDING = 5;
 @end
 
 
-@implementation UIEditBoxImplIOS_objc
+@implementation CCEditBoxImplIOS_objc
 
 @synthesize textField = textField_;
 @synthesize editState = editState_;
@@ -73,11 +71,10 @@ static const int CC_EDIT_BOX_PADDING = 5;
     if (self)
     {
         editState_ = NO;
-        self.textField = [[[UICustomUITextField alloc] initWithFrame: frameRect] autorelease];
+        self.textField = [[[CCCustomUITextField alloc] initWithFrame: frameRect] autorelease];
 
         [textField_ setTextColor:[UIColor whiteColor]];
-         //TODO: need to delete hard code here.
-        textField_.font = [UIFont systemFontOfSize:frameRect.size.height*2/3];
+        textField_.font = [UIFont systemFontOfSize:frameRect.size.height*2/3]; //TODO need to delete hard code here.
 		textField_.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
         textField_.backgroundColor = [UIColor clearColor];
         textField_.borderStyle = UITextBorderStyleNone;
@@ -161,14 +158,14 @@ static const int CC_EDIT_BOX_PADDING = 5;
     {
         [self performSelector:@selector(animationSelector) withObject:nil afterDelay:0.0f];
     }
-    cocos2d::ui::EditBoxDelegate* pDelegate = getEditBoxImplIOS()->getDelegate();
+    cocos2d::extension::EditBoxDelegate* pDelegate = getEditBoxImplIOS()->getDelegate();
     if (pDelegate != NULL)
     {
         pDelegate->editBoxEditingDidBegin(getEditBoxImplIOS()->getEditBox());
     }
     
 #if CC_ENABLE_SCRIPT_BINDING
-    cocos2d::ui::EditBox*  pEditBox= getEditBoxImplIOS()->getEditBox();
+    cocos2d::extension::EditBox*  pEditBox= getEditBoxImplIOS()->getEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {        
         cocos2d::CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "began",pEditBox);
@@ -185,7 +182,7 @@ static const int CC_EDIT_BOX_PADDING = 5;
     editState_ = NO;
     getEditBoxImplIOS()->refreshInactiveText();
     
-    cocos2d::ui::EditBoxDelegate* pDelegate = getEditBoxImplIOS()->getDelegate();
+    cocos2d::extension::EditBoxDelegate* pDelegate = getEditBoxImplIOS()->getDelegate();
     if (pDelegate != NULL)
     {
         pDelegate->editBoxEditingDidEnd(getEditBoxImplIOS()->getEditBox());
@@ -193,7 +190,7 @@ static const int CC_EDIT_BOX_PADDING = 5;
     }
     
 #if CC_ENABLE_SCRIPT_BINDING
-    cocos2d::ui::EditBox*  pEditBox= getEditBoxImplIOS()->getEditBox();
+    cocos2d::extension::EditBox*  pEditBox= getEditBoxImplIOS()->getEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
         cocos2d::CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "ended",pEditBox);
@@ -242,14 +239,14 @@ static const int CC_EDIT_BOX_PADDING = 5;
 - (void) textChanged
 {
     // NSLog(@"text is %@", self.textField.text);
-    cocos2d::ui::EditBoxDelegate* pDelegate = getEditBoxImplIOS()->getDelegate();
+    cocos2d::extension::EditBoxDelegate* pDelegate = getEditBoxImplIOS()->getDelegate();
     if (pDelegate != NULL)
     {
         pDelegate->editBoxTextChanged(getEditBoxImplIOS()->getEditBox(), getEditBoxImplIOS()->getText());
     }
     
 #if CC_ENABLE_SCRIPT_BINDING
-    cocos2d::ui::EditBox*  pEditBox= getEditBoxImplIOS()->getEditBox();
+    cocos2d::extension::EditBox*  pEditBox= getEditBoxImplIOS()->getEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
         cocos2d::CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "changed",pEditBox);
@@ -262,9 +259,7 @@ static const int CC_EDIT_BOX_PADDING = 5;
 @end
 
 
-NS_CC_BEGIN
-
-namespace ui {
+NS_CC_EXT_BEGIN
 
 EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
 {
@@ -311,7 +306,7 @@ bool EditBoxImplIOS::initWithSize(const Size& size)
             rect.size.height /= 2.0f;
         }
         
-        _systemControl = [[UIEditBoxImplIOS_objc alloc] initWithFrame:rect editBox:this];
+        _systemControl = [[CCEditBoxImplIOS_objc alloc] initWithFrame:rect editBox:this];
         if (!_systemControl) break;
         
 		initInactiveLabels(size);
@@ -345,8 +340,8 @@ void EditBoxImplIOS::initInactiveLabels(const Size& size)
 
 void EditBoxImplIOS::placeInactiveLabels()
 {
-    _label->setPosition(CC_EDIT_BOX_PADDING, _contentSize.height / 2.0f);
-    _labelPlaceHolder->setPosition(CC_EDIT_BOX_PADDING, _contentSize.height / 2.0f);
+    _label->setPosition(Vec2(CC_EDIT_BOX_PADDING, _contentSize.height / 2.0f));
+    _labelPlaceHolder->setPosition(Vec2(CC_EDIT_BOX_PADDING, _contentSize.height / 2.0f));
 }
 
 void EditBoxImplIOS::setInactiveText(const char* pText)
@@ -397,6 +392,8 @@ void EditBoxImplIOS::setFont(const char* pFontName, int fontSize)
 
 	_label->setSystemFontName(pFontName);
 	_label->setSystemFontSize(fontSize);
+	_labelPlaceHolder->setSystemFontName(pFontName);
+	_labelPlaceHolder->setSystemFontSize(fontSize);
 }
 
 void EditBoxImplIOS::setFontColor(const Color3B& color)
@@ -407,8 +404,7 @@ void EditBoxImplIOS::setFontColor(const Color3B& color)
 
 void EditBoxImplIOS::setPlaceholderFont(const char* pFontName, int fontSize)
 {
-	_labelPlaceHolder->setSystemFontName(pFontName);
-	_labelPlaceHolder->setSystemFontSize(fontSize);
+	// TODO need to be implemented.
 }
 
 void EditBoxImplIOS::setPlaceholderFontColor(const Color3B& color)
@@ -671,9 +667,7 @@ void EditBoxImplIOS::onEndEditing()
 	}
 }
 
-}
-
-NS_CC_END
+NS_CC_EXT_END
 
 #endif /* #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) */
 

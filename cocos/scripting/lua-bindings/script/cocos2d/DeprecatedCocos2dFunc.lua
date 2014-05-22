@@ -113,6 +113,22 @@ end
 rawset(CCFileUtils,"purgeFileUtils",CCFileUtilsDeprecated.purgeFileUtils)
 --functions of CCFileUtils will be deprecated end
 
+
+--functions of SimpleAudioEngine will be deprecated begin
+local SimpleAudioEngineDeprecated = { }
+function SimpleAudioEngineDeprecated.sharedEngine()
+    deprecatedTip("SimpleAudioEngine:sharedEngine","SimpleAudioEngine:getInstance")
+    return cc.SimpleAudioEngine:getInstance()
+end
+rawset(SimpleAudioEngine,"sharedEngine",SimpleAudioEngineDeprecated.sharedEngine)
+
+function SimpleAudioEngineDeprecated.playBackgroundMusic(self,...)
+    deprecatedTip("SimpleAudioEngine:playBackgroundMusic","SimpleAudioEngine:playMusic")
+    return self:playMusic(...)
+end
+rawset(SimpleAudioEngine,"playBackgroundMusic",SimpleAudioEngineDeprecated.playBackgroundMusic)
+--functions of SimpleAudioEngine will be deprecated end
+
 --functions of CCMenu will be deprecated begin
 local CCMenuDeprecated = { }
 function CCMenuDeprecated.createWithItem(self,...)
@@ -674,7 +690,32 @@ local function tex2(u,v)
     deprecatedTip("tex2(u,v)","cc.tex2f(u,v)")
     return cc.tex2f(u,v)
 end
-rawset(_G,"tex2",tex2)
+rawset(_G,"tex2",tex2) 
+
+--functions of CCControl will be deprecated end
+local CCControlDeprecated = { }
+function CCControlDeprecated.addHandleOfControlEvent(self,func,controlEvent)
+    deprecatedTip("addHandleOfControlEvent","registerControlEventHandler")
+    print("come in addHandleOfControlEvent")
+    self:registerControlEventHandler(func,controlEvent)
+end
+rawset(CCControl,"addHandleOfControlEvent",CCControlDeprecated.addHandleOfControlEvent)
+--functions of CCControl will be deprecated end
+
+--Enums of CCTableView will be deprecated begin
+rawset(CCTableView, "kTableViewScroll",cc.SCROLLVIEW_SCRIPT_SCROLL)
+rawset(CCTableView,"kTableViewZoom",cc.SCROLLVIEW_SCRIPT_ZOOM)
+rawset(CCTableView,"kTableCellTouched",cc.TABLECELL_TOUCHED)
+rawset(CCTableView,"kTableCellSizeForIndex",cc.TABLECELL_SIZE_FOR_INDEX)
+rawset(CCTableView,"kTableCellSizeAtIndex",cc.TABLECELL_SIZE_AT_INDEX)
+rawset(CCTableView,"kNumberOfCellsInTableView",cc.NUMBER_OF_CELLS_IN_TABLEVIEW)
+--Enums of CCTableView will be deprecated end
+
+--Enums of CCScrollView will be deprecated begin
+rawset(CCScrollView, "kScrollViewScroll",cc.SCROLLVIEW_SCRIPT_SCROLL)
+rawset(CCScrollView,"kScrollViewZoom",cc.SCROLLVIEW_SCRIPT_ZOOM)
+--Enums of CCScrollView will be deprecated end
+
 
 
 --functions of CCApplication will be deprecated end
@@ -928,6 +969,26 @@ end
 rawset(CCTMXObjectGroup,"objectNamed", CCTMXObjectGroupDeprecated.objectNamed)
 --functions of CCTMXObject will be deprecated end
 
+
+--functions of WebSocket will be deprecated begin
+local targetPlatform = CCApplication:getInstance():getTargetPlatform()
+if (kTargetIphone == targetPlatform) or (kTargetIpad == targetPlatform) or (kTargetAndroid == targetPlatform) or (kTargetWindows == targetPlatform) then
+    local WebSocketDeprecated = { }
+    function WebSocketDeprecated.sendTextMsg(self, string)
+        deprecatedTip("WebSocket:sendTextMsg","WebSocket:sendString")
+        return self:sendString(string)
+    end
+    rawset(WebSocket,"sendTextMsg", WebSocketDeprecated.sendTextMsg)
+
+    function WebSocketDeprecated.sendBinaryMsg(self, table,tablesize)
+        deprecatedTip("WebSocket:sendBinaryMsg","WebSocket:sendString")
+        string.char(unpack(table))
+        return self:sendString(string.char(unpack(table)))
+    end
+    rawset(WebSocket,"sendBinaryMsg", WebSocketDeprecated.sendBinaryMsg)
+end
+--functions of WebSocket will be deprecated end
+
 --functions of CCRenderTexture will be deprecated begin
 local CCRenderTextureDeprecated = { }
 function CCRenderTextureDeprecated.newCCImage(self)
@@ -965,6 +1026,78 @@ function CCLayerDeprecated.isKeypadEnabled(self)
 end
 rawset(cc.Layer, "isKeypadEnabled", CCLayerDeprecated.isKeypadEnabled )
 --functions of Layer will be deprecated end
+
+--functions of ccs.GUIReader will be deprecated begin
+local CCSGUIReaderDeprecated = { }
+function CCSGUIReaderDeprecated.purgeGUIReader()
+    deprecatedTip("ccs.GUIReader:purgeGUIReader","ccs.GUIReader:destroyInstance")
+    return ccs.GUIReader:destroyInstance()
+end
+rawset(ccs.GUIReader,"purgeGUIReader",CCSGUIReaderDeprecated.purgeGUIReader)
+--functions of ccs.GUIReader will be deprecated end
+
+--functions of ccs.ActionManagerEx will be deprecated begin
+local CCSActionManagerExDeprecated = { }
+function CCSActionManagerExDeprecated.destroyActionManager()
+    deprecatedTip("ccs.ActionManagerEx:destroyActionManager","ccs.ActionManagerEx:destroyInstance")
+    return ccs.ActionManagerEx:destroyInstance()
+end
+rawset(ccs.ActionManagerEx,"destroyActionManager",CCSActionManagerExDeprecated.destroyActionManager)
+--functions of ccs.ActionManagerEx will be deprecated end
+
+--functions of ccs.SceneReader will be deprecated begin
+local CCSSceneReaderDeprecated = { }
+function CCSSceneReaderDeprecated.destroySceneReader(self)
+    deprecatedTip("ccs.SceneReader:destroySceneReader","ccs.SceneReader:destroyInstance")
+    return self:destroyInstance()
+end
+rawset(ccs.SceneReader,"destroySceneReader",CCSSceneReaderDeprecated.destroySceneReader)
+--functions of ccs.SceneReader will be deprecated end
+
+--functions of CCArmatureDataManager will be deprecated begin
+local CCArmatureDataManagerDeprecated = { }
+function CCArmatureDataManagerDeprecated.sharedArmatureDataManager()
+    deprecatedTip("CCArmatureDataManager:sharedArmatureDataManager","ccs.ArmatureDataManager:getInstance")
+    return ccs.ArmatureDataManager:getInstance()
+end
+rawset(CCArmatureDataManager,"sharedArmatureDataManager",CCArmatureDataManagerDeprecated.sharedArmatureDataManager)
+
+function CCArmatureDataManagerDeprecated.purge()
+    deprecatedTip("CCArmatureDataManager:purge","ccs.ArmatureDataManager:destoryInstance")
+    return ccs.ArmatureDataManager:destoryInstance() 
+end
+rawset(CCArmatureDataManager,"purge",CCArmatureDataManagerDeprecated.purge)
+--functions of CCArmatureDataManager will be deprecated end
+
+--functions of GUIReader will be deprecated begin
+local GUIReaderDeprecated = { }
+function GUIReaderDeprecated.shareReader()
+    deprecatedTip("GUIReader:shareReader","ccs.GUIReader:getInstance")
+    return ccs.GUIReader:getInstance()
+end
+rawset(GUIReader,"shareReader",GUIReaderDeprecated.shareReader)
+
+function GUIReaderDeprecated.purgeGUIReader()
+    deprecatedTip("GUIReader:purgeGUIReader","ccs.GUIReader:destroyInstance")
+    return ccs.GUIReader:destroyInstance()
+end
+rawset(GUIReader,"purgeGUIReader",GUIReaderDeprecated.purgeGUIReader)
+--functions of GUIReader will be deprecated end
+
+--functions of SceneReader will be deprecated begin
+local SceneReaderDeprecated = { }
+function SceneReaderDeprecated.sharedSceneReader()
+    deprecatedTip("SceneReader:sharedSceneReader","ccs.SceneReader:getInstance")
+    return ccs.SceneReader:getInstance()
+end
+rawset(SceneReader,"sharedSceneReader",SceneReaderDeprecated.sharedSceneReader)
+
+function SceneReaderDeprecated.purgeSceneReader(self)
+    deprecatedTip("SceneReader:purgeSceneReader","ccs.SceneReader:destroyInstance")
+    return self:destroyInstance()
+end
+rawset(SceneReader,"purgeSceneReader",SceneReaderDeprecated.purgeSceneReader)
+--functions of SceneReader will be deprecated end
 
 --functions of cc.Node will be deprecated begin
 local NodeDeprecated = { }
@@ -1013,3 +1146,53 @@ function GLProgram.addAttribute(self, attributeName, index)
 end
 rawset(cc.GLProgram,"addAttribute", GLProgram.addAttribute)
 --functions of cc.GLProgram will be deprecated end
+
+--functions of ccui.Text will be deprecated begin
+local TextDeprecated = { }
+function TextDeprecated.setText(self, str)
+    deprecatedTip("ccui.Text:setText","ccui.Text:setString")
+    return self:setString(str)
+end
+rawset(ccui.Text,"setText", TextDeprecated.setText)
+
+function TextDeprecated.getStringValue(self)
+    deprecatedTip("ccui.Text:getStringValue","ccui.Text:getString")
+    return self:getString()
+end
+rawset(ccui.Text,"getStringValue", TextDeprecated.getStringValue)
+
+--functions of ccui.Text will be deprecated begin
+
+--functions of ccui.TextAtlas will be deprecated begin
+local TextAtlasDeprecated = { }
+function TextAtlasDeprecated.setStringValue(self, str)
+    deprecatedTip("ccui.TextAtlas:setStringValue","ccui.TextAtlas:setString")
+    return self:setString(str)
+end
+rawset(ccui.TextAtlas,"setStringValue", TextAtlasDeprecated.setStringValue)
+
+function TextAtlasDeprecated.getStringValue(self)
+    deprecatedTip("ccui.TextAtlas:getStringValue","ccui.TextAtlas:getString")
+    return self:getString()
+end
+rawset(ccui.TextAtlas,"getStringValue", TextAtlasDeprecated.getStringValue)
+
+--functions of ccui.TextAtlas will be deprecated begin
+
+
+--functions of ccui.TextBMFont will be deprecated begin
+local TextBMFontDeprecated = { }
+function TextBMFontDeprecated.setText(self, str)
+    deprecatedTip("ccui.TextBMFont:setText","ccui.TextBMFont:setString")
+    return self:setString(str)
+end
+rawset(ccui.TextBMFont,"setText", TextBMFontDeprecated.setText)
+
+function TextBMFontDeprecated.getStringValue(self)
+    deprecatedTip("ccui.Text:getStringValue","ccui.TextBMFont:getString")
+    return self:getString()
+end
+rawset(ccui.Text,"getStringValue", TextBMFontDeprecated.getStringValue)
+--functions of ccui.TextBMFont will be deprecated begin
+
+

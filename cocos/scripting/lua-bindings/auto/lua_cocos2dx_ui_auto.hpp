@@ -1,4 +1,3 @@
-#include "base/ccConfig.h"
 #ifndef __cocos2dx_ui_h__
 #define __cocos2dx_ui_h__
 
@@ -11,99 +10,6 @@ extern "C" {
 #endif
 
 int register_all_cocos2dx_ui(lua_State* tolua_S);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

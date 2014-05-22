@@ -26,15 +26,15 @@ THE SOFTWARE.
 #define __SUPPORT_ZIPUTILS_H__
 
 #include <string>
-#include "platform/CCPlatformConfig.h"
-#include "platform/CCPlatformMacros.h"
-#include "platform/CCPlatformDefine.h"
+#include "base/CCPlatformConfig.h"
+#include "CCPlatformDefine.h"
+#include "base/CCPlatformMacros.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
-#include "platform/android/CCFileUtils-android.h"
+#include "platform/android/CCFileUtilsAndroid.h"
 #elif(CC_TARGET_PLATFORM == CC_PLATFORM_WIN32) || (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
 // for import ssize_t on win32 platform
-#include "platform/CCStdC.h"
+#include "CCStdC.h"
 #endif
 
 namespace cocos2d
@@ -223,7 +223,7 @@ namespace cocos2d
     *
     * @since v2.0.5
     */
-    class CC_DLL ZipFile
+    class ZipFile
     {
     public:
         /**

@@ -7,7 +7,6 @@
 #include "CustomGUIScene.h"
 #include "controller.h"
 #include "cocostudio/CocoStudio.h"
-#include "CocostudioParserTest.h"
 
 enum
 {
@@ -26,7 +25,7 @@ g_guisTests[] =
         "GUI Dynamic Create Test",
         [](Ref* sender)
         {
-            CocosGUITestScene *scene = new (std::nothrow) CocosGUITestScene();
+            CocosGUITestScene *scene = new CocosGUITestScene();
 			scene->runThisTest();
 			scene->release();
         }
@@ -35,7 +34,7 @@ g_guisTests[] =
         "GUI Editor Test",
         [](Ref* sender)
         {
-            GUIEditorTestScene* scene = new (std::nothrow) GUIEditorTestScene();
+            GUIEditorTestScene* scene = new GUIEditorTestScene();
             scene->runThisTest();
             scene->release();
         }
@@ -44,16 +43,7 @@ g_guisTests[] =
         "Custom GUI Test",
         [](Ref* sender)
         {
-            CustomGUITestScene* scene = new (std::nothrow) CustomGUITestScene();
-            scene->runThisTest();
-            scene->release();
-        }
-	},
-    {
-        "Cocostudio Parser Test",
-        [](Ref* sender)
-        {
-            CocostudioParserTestScene* scene = new (std::nothrow) CocostudioParserTestScene();
+            CustomGUITestScene* scene = new CustomGUITestScene();
             scene->runThisTest();
             scene->release();
         }
@@ -85,7 +75,7 @@ void CocoStudioGUIMainLayer::onEnter()
     for (int i = 0; i < g_maxTests; ++i)
     {
         auto pItem = MenuItemFont::create(g_guisTests[i].name, g_guisTests[i].callback);
-        pItem->setPosition(s.width / 2, s.height / 4 * 3 - (i + 1) * LINE_SPACE);
+        pItem->setPosition(Vec2(s.width / 2, s.height / 4 * 3 - (i + 1) * LINE_SPACE));
         _itemMenu->addChild(pItem, kItemTagBasic + i);
     }
     
@@ -119,17 +109,17 @@ void CocoStudioGUITestScene::onEnter()
     //#endif
     MenuItemLabel* pMenuItem = MenuItemLabel::create(label, CC_CALLBACK_1(CocoStudioGUITestScene::BackCallback, this));
     
-    Menu* pMenu = Menu::create(pMenuItem, nullptr);
+    Menu* pMenu = Menu::create(pMenuItem, NULL);
     
     pMenu->setPosition( Vec2::ZERO );
-    pMenuItem->setPosition(VisibleRect::right().x - 50, VisibleRect::bottom().y + 25);
+    pMenuItem->setPosition( Vec2( VisibleRect::right().x - 50, VisibleRect::bottom().y + 25) );
     
     addChild(pMenu, 1);
 }
 
 void CocoStudioGUITestScene::runThisTest()
 {
-    Layer* pLayer = new (std::nothrow) CocoStudioGUIMainLayer();
+    Layer* pLayer = new CocoStudioGUIMainLayer();
     addChild(pLayer);
     pLayer->release();
     
@@ -140,7 +130,7 @@ void CocoStudioGUITestScene::BackCallback(Ref* pSender)
 {
     auto scene = Scene::create();
     
-    auto layer = new (std::nothrow) TestController();
+    auto layer = new TestController();
     scene->addChild(layer);
     layer->release();
     

@@ -8,14 +8,6 @@ import sys
 import traceback
 from jenkinsapi.jenkins import Jenkins
 
-access_token = os.environ['GITHUB_ACCESS_TOKEN']
-Headers = {"Authorization":"token " + access_token} 
-
-http_proxy = ''
-if(os.environ.has_key('HTTP_PROXY')):
-    http_proxy = os.environ['HTTP_PROXY']
-proxyDict = {'http':http_proxy,'https':http_proxy}
-
 def check_queue_build(action, pr_num, statuses_url):
     username = os.environ['JENKINS_ADMIN']
     password = os.environ['JENKINS_ADMIN_PW']
@@ -31,8 +23,10 @@ def check_queue_build(action, pr_num, statuses_url):
           queues.delete_item(queue)
           target_url = os.environ['JOB_PULL_REQUEST_BUILD_URL']
           data = {"state":"error", "target_url":target_url}
+          access_token = os.environ['GITHUB_ACCESS_TOKEN']
+          Headers = {"Authorization":"token " + access_token} 
           try:
-              requests.post(statuses_url, data=json.dumps(data), headers=Headers, proxies = proxyDict)
+              requests.post(statuses_url, data=json.dumps(data), headers=Headers)
           except:
               traceback.print_exc()
 
@@ -77,7 +71,7 @@ def main():
         print 'pull request #' + str(pr_num) + ' is '+action+', no build triggered'
         return(0)
   
-    r = requests.get(pr['url']+"/commits", headers=Headers, proxies = proxyDict)
+    r = requests.get(pr['url']+"/commits")
     commits = r.json()
     last_commit = commits[len(commits)-1]
     message = last_commit['commit']['message']
@@ -91,11 +85,12 @@ def main():
         print 'skip build for pull request #' + str(pr_num)
         return(0)
     
-    data = {"state":"pending", "target_url":target_url, "context":"Jenkins CI", "description":"Waiting available build machine..."}
-  
+    data = {"state":"pending", "target_url":target_url}
+    access_token = os.environ['GITHUB_ACCESS_TOKEN']
+    Headers = {"Authorization":"token " + access_token} 
 
     try:
-        requests.post(statuses_url, data=json.dumps(data), headers=Headers, proxies = proxyDict)
+        requests.post(statuses_url, data=json.dumps(data), headers=Headers)
     except:
         traceback.print_exc()
 
@@ -103,7 +98,7 @@ def main():
     #send trigger and payload
     post_data = {'payload':""}
     post_data['payload']= json.dumps(payload_forword)
-    requests.post(job_trigger_url, data=post_data, proxies = proxyDict)
+    requests.post(job_trigger_url, data=post_data)
 
     return(0)
 

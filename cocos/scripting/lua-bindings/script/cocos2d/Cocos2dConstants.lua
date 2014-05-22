@@ -185,8 +185,59 @@ cc.PLATFORM_OS_BLACKBERRY = 6
 cc.PLATFORM_OS_NACL    = 7
 cc.PLATFORM_OS_EMSCRIPTEN = 8
 cc.PLATFORM_OS_TIZEN   = 9
-cc.PLATFORM_OS_WINRT   = 10
-cc.PLATFORM_OS_WP8     = 11
+
+cc.SCROLLVIEW_SCRIPT_SCROLL = 0
+cc.SCROLLVIEW_SCRIPT_ZOOM   = 1
+cc.TABLECELL_TOUCHED        = 2
+cc.TABLECELL_HIGH_LIGHT     = 3
+cc.TABLECELL_UNHIGH_LIGHT   = 4
+cc.TABLECELL_WILL_RECYCLE   = 5
+cc.TABLECELL_SIZE_FOR_INDEX = 6
+cc.TABLECELL_SIZE_AT_INDEX  = 7
+cc.NUMBER_OF_CELLS_IN_TABLEVIEW = 8
+
+cc.SCROLLVIEW_DIRECTION_NONE = -1
+cc.SCROLLVIEW_DIRECTION_HORIZONTAL = 0
+cc.SCROLLVIEW_DIRECTION_VERTICAL = 1
+cc.SCROLLVIEW_DIRECTION_BOTH  = 2
+
+cc.CONTROL_EVENTTYPE_TOUCH_DOWN = 1
+cc.CONTROL_EVENTTYPE_DRAG_INSIDE = 2
+cc.CONTROL_EVENTTYPE_DRAG_OUTSIDE = 4
+cc.CONTROL_EVENTTYPE_DRAG_ENTER = 8
+cc.CONTROL_EVENTTYPE_DRAG_EXIT = 16
+cc.CONTROL_EVENTTYPE_TOUCH_UP_INSIDE = 32
+cc.CONTROL_EVENTTYPE_TOUCH_UP_OUTSIDE = 64
+cc.CONTROL_EVENTTYPE_TOUCH_CANCEL    = 128
+cc.CONTROL_EVENTTYPE_VALUE_CHANGED   = 256
+
+cc.CONTROL_STATE_NORMAL  = 1
+cc.CONTROL_STATE_HIGH_LIGHTED = 2
+cc.CONTROL_STATE_DISABLED = 4
+cc.CONTROL_STATE_SELECTED = 8
+
+
+cc.KEYBOARD_RETURNTYPE_DEFAULT = 0
+cc.KEYBOARD_RETURNTYPE_DONE = 1
+cc.KEYBOARD_RETURNTYPE_SEND = 2
+cc.KEYBOARD_RETURNTYPE_SEARCH = 3
+cc.KEYBOARD_RETURNTYPE_GO = 4
+
+
+cc.EDITBOX_INPUT_MODE_ANY = 0
+cc.EDITBOX_INPUT_MODE_EMAILADDR = 1
+cc.EDITBOX_INPUT_MODE_NUMERIC = 2
+cc.EDITBOX_INPUT_MODE_PHONENUMBER = 3
+cc.EDITBOX_INPUT_MODE_URL = 4
+cc.EDITBOX_INPUT_MODE_DECIMAL = 5
+cc.EDITBOX_INPUT_MODE_SINGLELINE = 6
+
+
+cc.EDITBOX_INPUT_FLAG_PASSWORD = 0
+cc.EDITBOX_INPUT_FLAG_SENSITIVE = 1
+cc.EDITBOX_INPUT_FLAG_INITIAL_CAPS_WORD = 2
+cc.EDITBOX_INPUT_FLAG_INITIAL_CAPS_SENTENCE = 3
+cc.EDITBOX_INPUT_FLAG_INITIAL_CAPS_ALL_CHARACTERS = 4
 
 cc.LANGUAGE_ENGLISH    = 0
 cc.LANGUAGE_CHINESE    = 1
@@ -206,6 +257,39 @@ cc.NODE_ON_EXIT        = 1
 cc.NODE_ON_ENTER_TRANSITION_DID_FINISH = 2
 cc.NODE_ON_EXIT_TRANSITION_DID_START   = 3 
 cc.NODE_ON_CLEAN_UP    = 4
+
+cc.CONTROL_STEPPER_PART_MINUS = 0
+cc.CONTROL_STEPPER_PART_PLUS  = 1
+cc.CONTROL_STEPPER_PART_NONE  = 2
+
+cc.TABLEVIEW_FILL_TOPDOWN = 0
+cc.TABLEVIEW_FILL_BOTTOMUP = 1
+
+cc.WEBSOCKET_OPEN     = 0
+cc.WEBSOCKET_MESSAGE  = 1
+cc.WEBSOCKET_CLOSE    = 2
+cc.WEBSOCKET_ERROR    = 3
+
+cc.WEBSOCKET_STATE_CONNECTING = 0
+cc.WEBSOCKET_STATE_OPEN       = 1
+cc.WEBSOCKET_STATE_CLOSING    = 2
+cc.WEBSOCKET_STATE_CLOSED     = 3
+
+
+cc.XMLHTTPREQUEST_RESPONSE_STRING = 0
+cc.XMLHTTPREQUEST_RESPONSE_ARRAY_BUFFER = 1
+cc.XMLHTTPREQUEST_RESPONSE_BLOB   = 2
+cc.XMLHTTPREQUEST_RESPONSE_DOCUMENT = 3
+cc.XMLHTTPREQUEST_RESPONSE_JSON = 4
+
+cc.ASSETSMANAGER_CREATE_FILE  = 0
+cc.ASSETSMANAGER_NETWORK = 1
+cc.ASSETSMANAGER_NO_NEW_VERSION = 2
+cc.ASSETSMANAGER_UNCOMPRESS     = 3
+
+cc.ASSETSMANAGER_PROTOCOL_PROGRESS =  0
+cc.ASSETSMANAGER_PROTOCOL_SUCCESS  =  1
+cc.ASSETSMANAGER_PROTOCOL_ERROR    =  2
 
 cc.Handler = cc.Handler or {}
 cc.Handler.NODE            = 0
@@ -265,14 +349,6 @@ cc.Handler.EVENT_PHYSICS_CONTACT_BEGIN = 53
 cc.Handler.EVENT_PHYSICS_CONTACT_PRESOLVE = 54
 cc.Handler.EVENT_PHYSICS_CONTACT_POSTSOLVE = 55
 cc.Handler.EVENT_PHYSICS_CONTACT_SEPERATE = 56
-cc.Handler.EVENT_FOCUS = 57
-cc.Handler.EVENT_CONTROLLER_CONNECTED = 58
-cc.Handler.EVENT_CONTROLLER_DISCONNECTED = 59
-cc.Handler.EVENT_CONTROLLER_KEYDOWN = 60
-cc.Handler.EVENT_CONTROLLER_KEYUP = 61
-cc.Handler.EVENT_CONTROLLER_KEYREPEAT = 62
-cc.Handler.EVENT_CONTROLLER_AXIS = 63
-
 
 cc.EVENT_UNKNOWN = 0
 cc.EVENT_TOUCH_ONE_BY_ONE      = 1
@@ -307,219 +383,181 @@ cc.LabelEffect =
     GLOW    = 3,
 }
 
-cc.KeyCodeKey =
-{
-    "KEY_NONE",
-    "KEY_PAUSE",
-    "KEY_SCROLL_LOCK",
-    "KEY_PRINT",
-    "KEY_SYSREQ",
-    "KEY_BREAK",
-    "KEY_ESCAPE",
-    "KEY_BACKSPACE",
-    "KEY_TAB",
-    "KEY_BACK_TAB",
-    "KEY_RETURN",
-    "KEY_CAPS_LOCK",
-    "KEY_SHIFT",
-    "KEY_CTRL",
-    "KEY_ALT",
-    "KEY_MENU",
-    "KEY_HYPER",
-    "KEY_INSERT",
-    "KEY_HOME",
-    "KEY_PG_UP",
-    "KEY_DELETE",
-    "KEY_END",
-    "KEY_PG_DOWN",
-    "KEY_LEFT_ARROW",
-    "KEY_RIGHT_ARROW",
-    "KEY_UP_ARROW",
-    "KEY_DOWN_ARROW",
-    "KEY_NUM_LOCK",
-    "KEY_KP_PLUS",
-    "KEY_KP_MINUS",
-    "KEY_KP_MULTIPLY",
-    "KEY_KP_DIVIDE",
-    "KEY_KP_ENTER",
-    "KEY_KP_HOME",
-    "KEY_KP_UP",
-    "KEY_KP_PG_UP",
-    "KEY_KP_LEFT",
-    "KEY_KP_FIVE",
-    "KEY_KP_RIGHT",
-    "KEY_KP_END",
-    "KEY_KP_DOWN",
-    "KEY_KP_PG_DOWN",
-    "KEY_KP_INSERT",
-    "KEY_KP_DELETE",
-    "KEY_F1",
-    "KEY_F2",
-    "KEY_F3",
-    "KEY_F4",
-    "KEY_F5",
-    "KEY_F6",
-    "KEY_F7",
-    "KEY_F8",
-    "KEY_F9",
-    "KEY_F10",
-    "KEY_F11",
-    "KEY_F12",
-    "KEY_SPACE",
-    "KEY_EXCLAM",
-    "KEY_QUOTE",
-    "KEY_NUMBER",
-    "KEY_DOLLAR",
-    "KEY_PERCENT",
-    "KEY_CIRCUMFLEX",
-    "KEY_AMPERSAND",
-    "KEY_APOSTROPHE",
-    "KEY_LEFT_PARENTHESIS",
-    "KEY_RIGHT_PARENTHESIS",
-    "KEY_ASTERISK",
-    "KEY_PLUS",
-    "KEY_COMMA",
-    "KEY_MINUS",
-    "KEY_PERIOD",
-    "KEY_SLASH",
-    "KEY_0",
-    "KEY_1",
-    "KEY_2",
-    "KEY_3",
-    "KEY_4",
-    "KEY_5",
-    "KEY_6",
-    "KEY_7",
-    "KEY_8",
-    "KEY_9",
-    "KEY_COLON",
-    "KEY_SEMICOLON",
-    "KEY_LESS_THAN",
-    "KEY_EQUAL",
-    "KEY_GREATER_THAN",
-    "KEY_QUESTION",
-    "KEY_AT",
-    "KEY_CAPITAL_A",
-    "KEY_CAPITAL_B",
-    "KEY_CAPITAL_C",
-    "KEY_CAPITAL_D",
-    "KEY_CAPITAL_E",
-    "KEY_CAPITAL_F",
-    "KEY_CAPITAL_G",
-    "KEY_CAPITAL_H",
-    "KEY_CAPITAL_I",
-    "KEY_CAPITAL_J",
-    "KEY_CAPITAL_K",
-    "KEY_CAPITAL_L",
-    "KEY_CAPITAL_M",
-    "KEY_CAPITAL_N",
-    "KEY_CAPITAL_O",
-    "KEY_CAPITAL_P",
-    "KEY_CAPITAL_Q",
-    "KEY_CAPITAL_R",
-    "KEY_CAPITAL_S",
-    "KEY_CAPITAL_T",
-    "KEY_CAPITAL_U",
-    "KEY_CAPITAL_V",
-    "KEY_CAPITAL_W",
-    "KEY_CAPITAL_X",
-    "KEY_CAPITAL_Y",
-    "KEY_CAPITAL_Z",
-    "KEY_LEFT_BRACKET",
-    "KEY_BACK_SLASH",
-    "KEY_RIGHT_BRACKET",
-    "KEY_UNDERSCORE",
-    "KEY_GRAVE",
-    "KEY_A",
-    "KEY_B",
-    "KEY_C",
-    "KEY_D",
-    "KEY_E",
-    "KEY_F",
-    "KEY_G",
-    "KEY_H",
-    "KEY_I",
-    "KEY_J",
-    "KEY_K",
-    "KEY_L",
-    "KEY_M",
-    "KEY_N",
-    "KEY_O",
-    "KEY_P",
-    "KEY_Q",
-    "KEY_R",
-    "KEY_S",
-    "KEY_T",
-    "KEY_U",
-    "KEY_V",
-    "KEY_W",
-    "KEY_X",
-    "KEY_Y",
-    "KEY_Z",
-    "KEY_LEFT_BRACE",
-    "KEY_BAR",
-    "KEY_RIGHT_BRACE",
-    "KEY_TILDE",
-    "KEY_EURO",
-    "KEY_POUND",
-    "KEY_YEN",
-    "KEY_MIDDLE_DOT",
-    "KEY_SEARCH",
-    "KEY_DPAD_LEFT",
-    "KEY_DPAD_RIGHT",
-    "KEY_DPAD_UP",
-    "KEY_DPAD_DOWN",
-    "KEY_DPAD_CENTER",
-    "KEY_ENTER",
-    "KEY_PLAY",
-}
-
 cc.KeyCode =
 {
+    KEY_NONE              = 0,
+    KEY_PAUSE             = 0x0013,
+    KEY_SCROLL_LOCK       = 0x1014,
+    KEY_PRINT             = 0x1061,
+    KEY_SYSREQ            = 0x106A,
+    KEY_BREAK             = 0x106B,
+    KEY_ESCAPE            = 0x001B,
+    KEY_BACKSPACE         = 0x0008,
+    KEY_TAB               = 0x0009,
+    KEY_BACK_TAB          = 0x0089,
+    KEY_RETURN            = 0x000D,
+    KEY_CAPS_LOCK         = 0x00E5,
+    KEY_SHIFT             = 0x00E1,
+    KEY_CTRL              = 0x00E3,
+    KEY_ALT               = 0x00E9,
+    KEY_MENU              = 0x1067,
+    KEY_HYPER             = 0x10ED,
+    KEY_INSERT            = 0x1063,
+    KEY_HOME              = 0x1050,
+    KEY_PG_UP             = 0x1055,
+    KEY_DELETE            = 0x10FF,
+    KEY_END               = 0x1057,
+    KEY_PG_DOWN           = 0x1056,
+    KEY_LEFT_ARROW        = 0x1051,
+    KEY_RIGHT_ARROW       = 0x1053,
+    KEY_UP_ARROW          = 0x1052,
+    KEY_DOWN_ARROW        = 0x1054,
+    KEY_NUM_LOCK          = 0x107F,
+    KEY_KP_PLUS           = 0x10AB,
+    KEY_KP_MINUS          = 0x10AD,
+    KEY_KP_MULTIPLY       = 0x10AA,
+    KEY_KP_DIVIDE         = 0x10AF,
+    KEY_KP_ENTER          = 0x108D,
+    KEY_KP_HOME           = 0x10B7,
+    KEY_KP_UP             = 0x10B8,
+    KEY_KP_PG_UP          = 0x10B9,
+    KEY_KP_LEFT           = 0x10B4,
+    KEY_KP_FIVE           = 0x10B5,
+    KEY_KP_RIGHT          = 0x10B6,
+    KEY_KP_END            = 0x10B1,
+    KEY_KP_DOWN           = 0x10B2,
+    KEY_KP_PG_DOWN        = 0x10B3,
+    KEY_KP_INSERT         = 0x10B0,
+    KEY_KP_DELETE         = 0x10AE,
+    KEY_F1                = 0x00BE,
+    KEY_F2                = 0x00BF,
+    KEY_F3                = 0x00C0,
+    KEY_F4                = 0x00C1,
+    KEY_F5                = 0x00C2,
+    KEY_F6                = 0x00C3,
+    KEY_F7                = 0x00C4,
+    KEY_F8                = 0x00C5,
+    KEY_F9                = 0x00C6,
+    KEY_F10               = 0x00C7,
+    KEY_F11               = 0x00C8,
+    KEY_F12               = 0x00C9,
+    KEY_SPACE             = ' ',
+    KEY_EXCLAM            = '!',
+    KEY_QUOTE             = '"',
+    KEY_NUMBER            = '#',
+    KEY_DOLLAR            = '$',
+    KEY_PERCENT           = '%',
+    KEY_CIRCUMFLEX        = '^',
+    KEY_AMPERSAND         = '&',
+    KEY_APOSTROPHE        = '\'',
+    KEY_LEFT_PARENTHESIS  = '(',
+    KEY_RIGHT_PARENTHESIS = ')',
+    KEY_ASTERISK          = '*',
+    KEY_PLUS              = '+',
+    KEY_COMMA             = ',',
+    KEY_MINUS             = '-',
+    KEY_PERIOD            = '.',
+    KEY_SLASH             = '/',
+    KEY_0                 = '0',
+    KEY_1                 = '1',
+    KEY_2                 = '2',
+    KEY_3                 = '3',
+    KEY_4                 = '4',
+    KEY_5                 = '5',
+    KEY_6                 = '6',
+    KEY_7                 = '7',
+    KEY_8                 = '8',
+    KEY_9                 = '9',
+    KEY_COLON             = ':',
+    KEY_SEMICOLON         = ';',
+    KEY_LESS_THAN         = '<',
+    KEY_EQUAL             = '=',
+    KEY_GREATER_THAN      = '>',
+    KEY_QUESTION          = '?',
+    KEY_AT                = '@',
+    KEY_CAPITAL_A         = 'A',
+    KEY_CAPITAL_B         = 'B',
+    KEY_CAPITAL_C         = 'C',
+    KEY_CAPITAL_D         = 'D',
+    KEY_CAPITAL_E         = 'E',
+    KEY_CAPITAL_F         = 'F',
+    KEY_CAPITAL_G         = 'G',
+    KEY_CAPITAL_H         = 'H',
+    KEY_CAPITAL_I         = 'I',
+    KEY_CAPITAL_J         = 'J',
+    KEY_CAPITAL_K         = 'K',
+    KEY_CAPITAL_L         = 'L',
+    KEY_CAPITAL_M         = 'M',
+    KEY_CAPITAL_N         = 'N',
+    KEY_CAPITAL_O         = 'O',
+    KEY_CAPITAL_P         = 'P',
+    KEY_CAPITAL_Q         = 'Q',
+    KEY_CAPITAL_R         = 'R',
+    KEY_CAPITAL_S         = 'S',
+    KEY_CAPITAL_T         = 'T',
+    KEY_CAPITAL_U         = 'U',
+    KEY_CAPITAL_V         = 'V',
+    KEY_CAPITAL_W         = 'W',
+    KEY_CAPITAL_X         = 'X',
+    KEY_CAPITAL_Y         = 'Y',
+    KEY_CAPITAL_Z         = 'Z',
+    KEY_LEFT_BRACKET      = '[',
+    KEY_BACK_SLASH        = '\\',
+    KEY_RIGHT_BRACKET     = ']',
+    KEY_UNDERSCORE        = '_',
+    KEY_GRAVE             = '`',
+    KEY_A                 = 'a',
+    KEY_B                 = 'b',
+    KEY_C                 = 'c',
+    KEY_D                 = 'd',
+    KEY_E                 = 'e',
+    KEY_F                 = 'f',
+    KEY_G                 = 'g',
+    KEY_H                 = 'h',
+    KEY_I                 = 'i',
+    KEY_J                 = 'j',
+    KEY_K                 = 'k',
+    KEY_L                 = 'l',
+    KEY_M                 = 'm',
+    KEY_N                 = 'n',
+    KEY_O                 = 'o',
+    KEY_P                 = 'p',
+    KEY_Q                 = 'q',
+    KEY_R                 = 'r',
+    KEY_S                 = 's',
+    KEY_T                 = 't',
+    KEY_U                 = 'u',
+    KEY_V                 = 'v',
+    KEY_W                 = 'w',
+    KEY_X                 = 'x',
+    KEY_Y                 = 'y',
+    KEY_Z                 = 'z',
+    KEY_LEFT_BRACE        = '{',
+    KEY_BAR               = '|',
+    KEY_RIGHT_BRACE       = '}',
+    KEY_TILDE             = '~',
+    KEY_EURO              = 0x20AC,
+    KEY_POUND             = 0x00A3,
+    KEY_YEN               = 0x00A5,
+    KEY_MIDDLE_DOT        = 0x0095,
+    KEY_SEARCH            = 0xFFAA,
+};
 
-}
-
-for k,v in ipairs(cc.KeyCodeKey) do
-    cc.KeyCode[v] = k - 1
-end
-
-cc.KeyCode.KEY_BACK = cc.KeyCode.KEY_ESCAPE
-
-cc.EventCode =
+cc.EventAssetsManager =
 {
-    BEGAN = 0,
-    MOVED = 1,
-    ENDED = 2,
-    CANCELLED = 3,
+    EventCode = 
+    {
+        ERROR_NO_LOCAL_MANIFEST = 0,
+        ERROR_DOWNLOAD_MANIFEST = 1,
+        ERROR_PARSE_MANIFEST = 2,
+        NEW_VERSION_FOUND = 3,
+        ALREADY_UP_TO_DATE = 4,
+        UPDATE_PROGRESSION = 5,
+        ASSET_UPDATED = 6,
+        ERROR_UPDATING = 7,
+        UPDATE_FINISHED = 8,
+    },
 }
 
-cc.DIRECTOR_PROJECTION_2D = 0
-cc.DIRECTOR_PROJECTION_3D = 1
 
-cc.ConfigType = 
-{
-    NONE = 0,
-    COCOSTUDIO = 1,
-}
 
-cc.AUDIO_INVAILD_ID   = -1
-cc.AUDIO_TIME_UNKNOWN  = -1.0
-
-cc.CameraFlag = 
-{
-    DEFAULT = 1,
-    USER1 = 2,
-    USER2 = 4,
-    USER3 = 8,
-    USER4 = 16,
-    USER5 = 32,
-    USER6 = 64,
-    USER7 = 128,
-    USER8 = 256,
-}
-
-cc.BillBoard_Mode = 
-{
-    VIEW_POINT_ORIENTED = 0,
-    VIEW_PLANE_ORIENTED = 1,
-}

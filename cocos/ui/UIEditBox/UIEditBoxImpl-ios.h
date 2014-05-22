@@ -23,29 +23,29 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __UIEditBoxIMPLIOS_H__
-#define __UIEditBoxIMPLIOS_H__
+#ifndef __CCEditBoxIMPLIOS_H__
+#define __CCEditBoxIMPLIOS_H__
 
-#include "platform/CCPlatformConfig.h"
+#include "cocos2d.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
 #include "extensions/ExtensionMacros.h"
-#include "UIEditBoxImpl.h"
+#include "CCEditBoxImpl.h"
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
-@interface UICustomUITextField : UITextField
+@interface CCCustomUITextField : UITextField
 {
 }
 
 @end
 
 
-@interface UIEditBoxImplIOS_objc : NSObject <UITextFieldDelegate>
+@interface CCEditBoxImplIOS_objc : NSObject <UITextFieldDelegate>
 {
-    UICustomUITextField* textField_;
+    CCCustomUITextField* textField_;
     void* editBox_;
     BOOL editState_;
 }
@@ -64,9 +64,7 @@
 
 @end
 
-NS_CC_BEGIN
-
-namespace ui {
+NS_CC_EXT_BEGIN
 
 class EditBox;
 
@@ -130,18 +128,16 @@ private:
     Size          _contentSize;
     Vec2         _position;
     Vec2         _anchorPoint;
-    UIEditBoxImplIOS_objc* _systemControl;
+    CCEditBoxImplIOS_objc* _systemControl;
     int             _maxTextLength;
     bool            _inRetinaMode;
 };
 
 
-}
-
-NS_CC_END
+NS_CC_EXT_END
 
 
 #endif /* #if (CC_TARGET_PLATFORM == CC_PLATFORM_IOS) */
 
-#endif /* __UIEditBoxIMPLIOS_H__ */
+#endif /* __CCEditBoxIMPLIOS_H__ */
 

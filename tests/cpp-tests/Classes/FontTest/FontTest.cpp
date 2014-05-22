@@ -14,15 +14,26 @@ enum {
 
 static int fontIdx = 0;
 
-//you don't need any ifdef anymore
 static std::string fontList[] =
 {
+#if ((CC_TARGET_PLATFORM == CC_PLATFORM_IOS) || (CC_TARGET_PLATFORM == CC_PLATFORM_MAC))
+    // custom ttf files are defined in Test-info.plist
+    "American Typewriter",
+    "Marker Felt",
+    "A Damn Mess",
+    "Abberancy",
+    "Abduction",
+    "Paint Boy",
+    "Schwarzwald Regular",
+    "Scissor Cuts",
+#else
     "fonts/A Damn Mess.ttf",
     "fonts/Abberancy.ttf",
     "fonts/Abduction.ttf",
     "fonts/Paint Boy.ttf",
-    "fonts/Schwarzwald.ttf",
+    "fonts/Schwarzwald Regular.ttf",
     "fonts/Scissor Cuts.ttf",
+#endif
 };
 
 static int fontCount = sizeof(fontList) / sizeof(*fontList);
@@ -111,12 +122,12 @@ void FontTest::showFont(const char *pFont)
     right->setAnchorPoint(Vec2(0,0.5));
     rightColor->setAnchorPoint(Vec2(0,0.5));
 
-    top->setPosition(s.width/2,s.height-20);
-    left->setPosition(0,s.height/2);
+    top->setPosition(Vec2(s.width/2,s.height-20));
+    left->setPosition(Vec2(0,s.height/2));
     leftColor->setPosition(left->getPosition());
-    center->setPosition(blockSize.width, s.height/2);
+    center->setPosition(Vec2(blockSize.width, s.height/2));
     centerColor->setPosition(center->getPosition());
-    right->setPosition(blockSize.width*2, s.height/2);
+    right->setPosition(Vec2(blockSize.width*2, s.height/2));
     rightColor->setPosition(right->getPosition());
 
     this->addChild(leftColor, -1, kTagColor1);

@@ -25,7 +25,9 @@ THE SOFTWARE.
 
 #include "2d/CCFontFreeType.h"
 
-#include "base/CCDirector.h"
+#include <stdio.h>
+#include <algorithm>
+
 #include "base/ccUTF8.h"
 #include "platform/CCFileUtils.h"
 #include "edtaa3func.h"
@@ -100,7 +102,6 @@ FontFreeType::FontFreeType(bool distanceFieldEnabled /* = false */,int outline /
 {
     if (_outlineSize > 0)
     {
-        _outlineSize *= CC_CONTENT_SCALE_FACTOR();
         FT_Stroker_New(FontFreeType::getFTLibrary(), &_stroker);
         FT_Stroker_Set(_stroker,
             (int)(_outlineSize * 64),
@@ -141,7 +142,7 @@ bool FontFreeType::createFontObject(const std::string &fontName, int fontSize)
 
     // set the requested font size
     int dpi = 72;
-    int fontSizePoints = (int)(64.f * fontSize * CC_CONTENT_SCALE_FACTOR());
+    int fontSizePoints = (int)(64.f * fontSize);
     if (FT_Set_Char_Size(face, fontSizePoints, fontSizePoints, dpi, dpi))
         return false;
     
@@ -172,7 +173,7 @@ FontFreeType::~FontFreeType()
 
 FontAtlas * FontFreeType::createFontAtlas()
 {
-    FontAtlas *atlas = new (std::nothrow) FontAtlas(*this);
+    FontAtlas *atlas = new FontAtlas(*this);
     if (_usedGlyphs != GlyphCollection::DYNAMIC)
     {
         std::u16string utf16;
@@ -265,7 +266,7 @@ unsigned char* FontFreeType::getGlyphBitmap(unsigned short theChar, long &outWid
         }
         else
         {
-            if (FT_Load_Glyph(_fontRef,glyphIndex,FT_LOAD_RENDER | FT_LOAD_NO_AUTOHINT))
+            if (FT_Load_Glyph(_fontRef,glyphIndex,FT_LOAD_RENDER))
                 break;
         }
 
@@ -285,6 +286,8 @@ unsigned char* FontFreeType::getGlyphBitmap(unsigned short theChar, long &outWid
             auto copyBitmap = new unsigned char[outWidth * outHeight];
             memcpy(copyBitmap,ret,outWidth * outHeight * sizeof(unsigned char));
 
+            long bitmapWidth;
+            long bitmapHeight;
             FT_BBox bbox;
             auto outlineBitmap = getGlyphBitmapWithOutline(theChar,bbox);
             if(outlineBitmap == nullptr)
@@ -294,47 +297,42 @@ unsigned char* FontFreeType::getGlyphBitmap(unsigned short theChar, long &outWid
                 break;
             }
 
-            auto outlineWidth = (bbox.xMax - bbox.xMin)>>6;
-            auto outlineHeight = (bbox.yMax - bbox.yMin)>>6;
+            bitmapWidth = (bbox.xMax - bbox.xMin)>>6;
+            bitmapHeight = (bbox.yMax - bbox.yMin)>>6;
 
-            auto blendWidth = outlineWidth > outWidth ? outlineWidth : outWidth;
-            auto blendHeight = outlineHeight > outHeight ? outlineHeight : outHeight;
-
-            long index,index2;
-            auto blendImage = new unsigned char[blendWidth * blendHeight * 2];
-            memset(blendImage, 0, blendWidth * blendHeight * 2);
-
-            auto px = (blendWidth - outlineWidth) / 2;
-            auto py = (blendHeight - outlineHeight) / 2;
-            for (int x = 0; x < outlineWidth; ++x)
+            long index;
+            auto blendImage = new unsigned char[bitmapWidth * bitmapHeight * 2];
+            memset(blendImage, 0, bitmapWidth * bitmapHeight * 2);
+            for (int x = 0; x < bitmapWidth; ++x)
             {
-                for (int y = 0; y < outlineHeight; ++y)
+                for (int y = 0; y < bitmapHeight; ++y)
                 {
-                    index = px + x + ( (py + y) * blendWidth );
-                    index2 = x + (y * outlineWidth);
-                    blendImage[2 * index] = outlineBitmap[index2];
+                    index = x + ( y * bitmapWidth );
+                    blendImage[2 * index] = outlineBitmap[index];
                 }
             }
 
-            px = (blendWidth - outWidth) / 2;
-            py = (blendHeight - outHeight) / 2;
-            for (int x = 0; x < outWidth; ++x)
+            long maxX = outWidth + _outlineSize;
+            long maxY = outHeight + _outlineSize;
+            for (int x = _outlineSize; x < maxX; ++x)
             {
-                for (int y = 0; y < outHeight; ++y)
+                for (int y = _outlineSize; y < maxY; ++y)
                 {
-                    index = px + x + ( (y + py) * blendWidth );
-                    index2 = x + (y * outWidth);
-                    blendImage[2 * index + 1] = copyBitmap[index2];
+                    index = x + ( y * bitmapWidth );
+
+                    blendImage[2 * index + 1] = copyBitmap[outWidth * (y - _outlineSize) + x - _outlineSize];
                 }
             }
 
             outRect.origin.x = bbox.xMin >> 6;
             outRect.origin.y = - (bbox.yMax >> 6);
-            xAdvance += 2 * _outlineSize;
-            outRect.size.width  =  blendWidth;
-            outRect.size.height =  blendHeight;
-            outWidth  = blendWidth;
-            outHeight = blendHeight;
+
+            xAdvance += bitmapWidth - outRect.size.width;
+
+            outRect.size.width  =  bitmapWidth;
+            outRect.size.height =  bitmapHeight;
+            outWidth  = bitmapWidth;
+            outHeight = bitmapHeight;
 
             delete [] outlineBitmap;
             delete [] copyBitmap;

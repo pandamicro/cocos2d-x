@@ -2,23 +2,13 @@
 
 #include "TextReader.h"
 #include "ui/UIText.h"
-#include "cocostudio/CocoLoader.h"
 
 USING_NS_CC;
 using namespace ui;
 
 namespace cocostudio
 {
-    static const char* P_TouchScaleEnable = "touchScaleEnable";
-    static const char* P_Text = "text";
-    static const char* P_FontSize = "fontSize";
-    static const char* P_FontName = "fontName";
-    static const char* P_AreaWidth = "areaWidth";
-    static const char* P_AreaHeight = "areaHeight";
-    static const char* P_HAlignment = "hAlignment";
-    static const char* P_VAlignment = "vAlignment";
-    
-    static TextReader* instanceTextReader = nullptr;
+    static TextReader* instanceTextReader = NULL;
     
     IMPLEMENT_CLASS_WIDGET_READER_INFO(TextReader)
     
@@ -36,58 +26,9 @@ namespace cocostudio
     {
         if (!instanceTextReader)
         {
-            instanceTextReader = new (std::nothrow) TextReader();
+            instanceTextReader = new TextReader();
         }
         return instanceTextReader;
-    }
-    
-    void TextReader::setPropsFromBinary(cocos2d::ui::Widget *widget, CocoLoader *cocoLoader, stExpCocoNode *cocoNode)
-    {
-        this->beginSetBasicProperties(widget);
-        
-        stExpCocoNode *stChildArray = cocoNode->GetChildArray(cocoLoader);
-        
-        Text* label = static_cast<Text*>(widget);
-        
-        std::string binaryFilePath = GUIReader::getInstance()->getFilePath();
-
-        
-        for (int i = 0; i < cocoNode->GetChildNum(); ++i) {
-            std::string key = stChildArray[i].GetName(cocoLoader);
-            std::string value = stChildArray[i].GetValue(cocoLoader);
-            //read all basic properties of widget
-            CC_BASIC_PROPERTY_BINARY_READER
-            //read all color related properties of widget
-            CC_COLOR_PROPERTY_BINARY_READER
-
-            else if (key == P_TouchScaleEnable) {
-                label->setTouchScaleChangeEnabled(valueToBool(value));
-            }
-            
-            else if(key == P_Text){
-                label->setString(value);
-            }else if(key == P_FontSize){
-                label->setFontSize(valueToInt(value));
-            }else if(key == P_FontName){
-                std::string fontFilePath;
-                fontFilePath = binaryFilePath.append(value);
-                if (FileUtils::getInstance()->isFileExist(fontFilePath)) {
-                    label->setFontName(fontFilePath);
-                }else{
-                    label->setFontName(value);
-                }
-            }else if(key == P_AreaWidth){
-                label->setTextAreaSize(Size(valueToFloat(value), label->getTextAreaSize().height));
-            }else if(key == P_AreaHeight){
-                label->setTextAreaSize(Size(label->getTextAreaSize().width, valueToFloat(value)));
-            }else if(key == P_HAlignment){
-                label->setTextHorizontalAlignment((TextHAlignment)valueToInt(value));
-            }else if(key == P_VAlignment){
-                label->setTextVerticalAlignment((TextVAlignment)valueToInt(value));
-            }
-            
-        } //end of for loop
-        this->endSetBasicProperties(widget);
     }
     
     void TextReader::setPropsFromJsonDictionary(Widget *widget, const rapidjson::Value &options)
@@ -98,40 +39,36 @@ namespace cocostudio
         std::string jsonPath = GUIReader::getInstance()->getFilePath();
         
         Text* label = static_cast<Text*>(widget);
-        bool touchScaleChangeAble = DICTOOL->getBooleanValue_json(options, P_TouchScaleEnable);
+        bool touchScaleChangeAble = DICTOOL->getBooleanValue_json(options, "touchScaleEnable");
         label->setTouchScaleChangeEnabled(touchScaleChangeAble);
-        const char* text = DICTOOL->getStringValue_json(options, P_Text,"Text Label");
+        const char* text = DICTOOL->getStringValue_json(options, "text");
         label->setString(text);
-      
-        label->setFontSize(DICTOOL->getIntValue_json(options, P_FontSize,20));
-       
-        std::string fontName = DICTOOL->getStringValue_json(options, P_FontName, "微软雅黑");
-        
-        std::string fontFilePath = jsonPath.append(fontName);
-		if (FileUtils::getInstance()->isFileExist(fontFilePath))
-		{
-			label->setFontName(fontFilePath);
-		}
-		else{
-			label->setFontName(fontName);
-		}
-        
-        bool aw = DICTOOL->checkObjectExist_json(options, P_AreaWidth);
-        bool ah = DICTOOL->checkObjectExist_json(options, P_AreaHeight);
+        bool fs = DICTOOL->checkObjectExist_json(options, "fontSize");
+        if (fs)
+        {
+            label->setFontSize(DICTOOL->getIntValue_json(options, "fontSize"));
+        }
+        bool fn = DICTOOL->checkObjectExist_json(options, "fontName");
+        if (fn)
+        {
+            label->setFontName(DICTOOL->getStringValue_json(options, "fontName"));
+        }
+        bool aw = DICTOOL->checkObjectExist_json(options, "areaWidth");
+        bool ah = DICTOOL->checkObjectExist_json(options, "areaHeight");
         if (aw && ah)
         {
-            Size size = Size(DICTOOL->getFloatValue_json(options, P_AreaWidth),DICTOOL->getFloatValue_json(options,P_AreaHeight));
+            Size size = Size(DICTOOL->getFloatValue_json(options, "areaWidth"),DICTOOL->getFloatValue_json(options,"areaHeight"));
             label->setTextAreaSize(size);
         }
-        bool ha = DICTOOL->checkObjectExist_json(options, P_HAlignment);
+        bool ha = DICTOOL->checkObjectExist_json(options, "hAlignment");
         if (ha)
         {
-            label->setTextHorizontalAlignment((TextHAlignment)DICTOOL->getIntValue_json(options, P_HAlignment));
+            label->setTextHorizontalAlignment((TextHAlignment)DICTOOL->getIntValue_json(options, "hAlignment"));
         }
-        bool va = DICTOOL->checkObjectExist_json(options, P_VAlignment);
+        bool va = DICTOOL->checkObjectExist_json(options, "vAlignment");
         if (va)
         {
-            label->setTextVerticalAlignment((TextVAlignment)DICTOOL->getIntValue_json(options, P_VAlignment));
+            label->setTextVerticalAlignment((TextVAlignment)DICTOOL->getIntValue_json(options, "vAlignment"));
         }
         
         

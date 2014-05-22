@@ -23,20 +23,22 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "UIEditBoxImpl-mac.h"
+#include "CCEditBoxImplMac.h"
+#include "base/CCDirector.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
-#include "base/CCDirector.h"
-#include "UIEditBox.h"
-#include "deprecated/CCString.h"
+#include "CCEditBox.h"
+#define GLFW_EXPOSE_NATIVE_NSGL
+#define GLFW_EXPOSE_NATIVE_COCOA
+#include "glfw3native.h"
 
 
-#define getEditBoxImplMac() ((cocos2d::ui::EditBoxImplMac*)editBox_)
+#define getEditBoxImplMac() ((cocos2d::extension::EditBoxImplMac*)editBox_)
 
 
 
-@implementation UIEditBoxImplMac
+@implementation CCEditBoxImplMac
 
 @synthesize textField = textField_;
 @synthesize secureTextField = secureTextField_;
@@ -47,7 +49,7 @@
 - (id) getNSWindow
 {
     auto glview = cocos2d::Director::getInstance()->getOpenGLView();
-    return glview->getCocoaWindow();
+    return glfwGetCocoaWindow(glview->getWindow());
 }
 
 - (void)dealloc
@@ -74,8 +76,7 @@
         self.textField = [[[NSTextField alloc] initWithFrame:frameRect] autorelease];
         self.secureTextField = [[[NSSecureTextField alloc] initWithFrame:frameRect] autorelease];
 
-        //TODO: need to delete hard code here.
-        NSFont *font = [NSFont systemFontOfSize:frameRect.size.height*2/3];
+        NSFont *font = [NSFont systemFontOfSize:frameRect.size.height*2/3]; //TODO need to delete hard code here.
         textField_.font = font;
         secureTextField_.font = font;
         
@@ -161,17 +162,17 @@
 {
 }
 
-- (void)controlTextDidBeginEditing:(NSNotification *)notification
+- (BOOL)textFieldShouldBeginEditing:(NSTextField *)sender        // return NO to disallow editing.
 {
     editState_ = YES;
-    cocos2d::ui::EditBoxDelegate* pDelegate = getEditBoxImplMac()->getDelegate();
+    cocos2d::extension::EditBoxDelegate* pDelegate = getEditBoxImplMac()->getDelegate();
     if (pDelegate != NULL)
     {
         pDelegate->editBoxEditingDidBegin(getEditBoxImplMac()->getEditBox());
     }
     
 #if CC_ENABLE_SCRIPT_BINDING
-    cocos2d::ui::EditBox*  pEditBox= getEditBoxImplMac()->getEditBox();
+    cocos2d::extension::EditBox*  pEditBox= getEditBoxImplMac()->getEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
         cocos2d::CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "began",pEditBox);
@@ -179,12 +180,13 @@
         cocos2d::ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
     }
 #endif
+    return YES;
 }
 
-- (void)controlTextDidEndEditing:(NSNotification *)notification
+- (BOOL)textFieldShouldEndEditing:(NSTextField *)sender
 {
     editState_ = NO;
-    cocos2d::ui::EditBoxDelegate* pDelegate = getEditBoxImplMac()->getDelegate();
+    cocos2d::extension::EditBoxDelegate* pDelegate = getEditBoxImplMac()->getDelegate();
     if (pDelegate != NULL)
     {
         pDelegate->editBoxEditingDidEnd(getEditBoxImplMac()->getEditBox());
@@ -192,7 +194,7 @@
     }
     
 #if CC_ENABLE_SCRIPT_BINDING
-    cocos2d::ui::EditBox*  pEditBox= getEditBoxImplMac()->getEditBox();
+    cocos2d::extension::EditBox*  pEditBox= getEditBoxImplMac()->getEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
         cocos2d::CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "ended",pEditBox);
@@ -204,6 +206,7 @@
         cocos2d::ScriptEngineManager::getInstance()->getScriptEngine()->sendEvent(&event);
     }
 #endif
+    return YES;
 }
 
 /**
@@ -234,14 +237,14 @@
  */
 - (void)controlTextDidChange:(NSNotification *)notification
 {
-    cocos2d::ui::EditBoxDelegate* pDelegate = getEditBoxImplMac()->getDelegate();
+    cocos2d::extension::EditBoxDelegate* pDelegate = getEditBoxImplMac()->getDelegate();
     if (pDelegate != NULL)
     {
         pDelegate->editBoxTextChanged(getEditBoxImplMac()->getEditBox(), getEditBoxImplMac()->getText());
     }
     
 #if CC_ENABLE_SCRIPT_BINDING
-    cocos2d::ui::EditBox*  pEditBox= getEditBoxImplMac()->getEditBox();
+    cocos2d::extension::EditBox*  pEditBox= getEditBoxImplMac()->getEditBox();
     if (NULL != pEditBox && 0 != pEditBox->getScriptEditBoxHandler())
     {
         cocos2d::CommonScriptData data(pEditBox->getScriptEditBoxHandler(), "changed",pEditBox);
@@ -253,9 +256,7 @@
 
 @end
 
-NS_CC_BEGIN
-
-namespace ui {
+NS_CC_EXT_BEGIN
 
 EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
 {
@@ -286,7 +287,7 @@ void EditBoxImplMac::doAnimationWhenKeyboardMove(float duration, float distance)
 
 bool EditBoxImplMac::initWithSize(const Size& size)
 {
-    GLView* eglView = Director::getInstance()->getOpenGLView();
+    GLViewProtocol* eglView = Director::getInstance()->getOpenGLView();
 
     NSRect rect = NSMakeRect(0, 0, size.width * eglView->getScaleX(),size.height * eglView->getScaleY());
 
@@ -295,7 +296,7 @@ bool EditBoxImplMac::initWithSize(const Size& size)
          rect.size.height /= 2.0f;
     }
     
-    _sysEdit = [[UIEditBoxImplMac alloc] initWithFrame:rect editBox:this];
+    _sysEdit = [[CCEditBoxImplMac alloc] initWithFrame:rect editBox:this];
     
     if (!_sysEdit)
         return false;
@@ -306,10 +307,7 @@ bool EditBoxImplMac::initWithSize(const Size& size)
 void EditBoxImplMac::setFont(const char* pFontName, int fontSize)
 {
 	NSString * fntName = [NSString stringWithUTF8String:pFontName];
-    float retinaFactor = _inRetinaMode ? 2.0f : 1.0f;
-    auto glview = cocos2d::Director::getInstance()->getOpenGLView();
-    float scaleFactor = glview->getScaleX();
-	NSFont *textFont = [NSFont fontWithName:fntName size:fontSize  * scaleFactor / retinaFactor];
+	NSFont *textFont = [NSFont fontWithName:fntName size:fontSize];
 	if (textFont != nil) {
 		[_sysEdit.textField setFont:textFont];
         [_sysEdit.secureTextField setFont:textFont];
@@ -319,17 +317,14 @@ void EditBoxImplMac::setFont(const char* pFontName, int fontSize)
 void EditBoxImplMac::setPlaceholderFont(const char* pFontName, int fontSize)
 {
     NSString *fontName = [NSString stringWithUTF8String:pFontName];
-    float retinaFactor = _inRetinaMode ? 2.0f : 1.0f;
-    auto glview = cocos2d::Director::getInstance()->getOpenGLView();
-    float scaleFactor = glview->getScaleX();
-    NSFont *font = [NSFont fontWithName:fontName size:fontSize  * scaleFactor / retinaFactor];
+    NSFont *font = [NSFont fontWithName:fontName size:fontSize];
     
     if (!font) {
         CCLOGWARN("Font not found: %s", pFontName);
         return;
     }
     
-    [_sysEdit.placeholderAttributes setObject:font forKey:NSFontAttributeName];
+    _sysEdit.placeholderAttributes[NSFontAttributeName] = font;
     
     /* reload placeholder */
     const char *placeholder = [_sysEdit.textField.cell placeholderAttributedString].string.UTF8String;
@@ -348,7 +343,7 @@ void EditBoxImplMac::setFontColor(const Color3B& color)
 void EditBoxImplMac::setPlaceholderFontColor(const Color3B& color)
 {
     NSColor *nsColor = [NSColor colorWithCalibratedRed:color.r/255.f green:color.g / 255.f blue:color.b / 255.f alpha:1.0f];
-    [_sysEdit.placeholderAttributes setObject:nsColor forKey:NSForegroundColorAttributeName];
+    _sysEdit.placeholderAttributes[NSForegroundColorAttributeName] = nsColor;
     
     /* reload placeholder */
     const char *placeholder = [_sysEdit.textField.cell placeholderAttributedString].string.UTF8String;
@@ -409,15 +404,11 @@ void EditBoxImplMac::setText(const char* pText)
 {
     NSString *string = [NSString stringWithUTF8String:pText];
     _sysEdit.textField.stringValue = string;
-    _sysEdit.secureTextField.stringValue = string;
+    _sysEdit.textField.stringValue = string;
 }
 
 const char*  EditBoxImplMac::getText(void)
 {
-    if (_sysEdit.secureTextField.superview) {
-        return [_sysEdit.secureTextField.stringValue UTF8String];
-    }
-    
     return [_sysEdit.textField.stringValue UTF8String];
 }
 
@@ -436,7 +427,7 @@ NSPoint EditBoxImplMac::convertDesignCoordToScreenCoord(const Vec2& designCoord,
     NSRect frame = [_sysEdit.textField frame];
     CGFloat height = frame.size.height;
     
-    GLView* eglView = Director::getInstance()->getOpenGLView();
+    GLViewProtocol* eglView = Director::getInstance()->getOpenGLView();
 
     Vec2 visiblePos = Vec2(designCoord.x * eglView->getScaleX(), designCoord.y * eglView->getScaleY());
     Vec2 screenGLPos = visiblePos + eglView->getViewPortRect().origin;
@@ -517,9 +508,7 @@ void EditBoxImplMac::onEnter(void)
     adjustTextFieldPosition();
 }
 
-}
-
-NS_CC_END
+NS_CC_EXT_END
 
 #endif // #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 

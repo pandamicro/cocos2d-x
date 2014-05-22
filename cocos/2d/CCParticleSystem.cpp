@@ -48,12 +48,16 @@ THE SOFTWARE.
 
 #include "2d/CCParticleBatchNode.h"
 #include "renderer/CCTextureAtlas.h"
+#include "platform/CCFileUtils.h"
+#include "platform/CCImage.h"
+#include "base/ccTypes.h"
 #include "base/base64.h"
 #include "base/ZipUtils.h"
 #include "base/CCDirector.h"
+#include "base/CCProfiling.h"
 #include "renderer/CCTextureCache.h"
-#include "deprecated/CCString.h"
-#include "platform/CCFileUtils.h"
+
+#include "CCGL.h"
 
 using namespace std;
 
@@ -135,7 +139,7 @@ ParticleSystem::ParticleSystem()
 
 ParticleSystem * ParticleSystem::create(const std::string& plistFile)
 {
-    ParticleSystem *ret = new (std::nothrow) ParticleSystem();
+    ParticleSystem *ret = new ParticleSystem();
     if (ret && ret->initWithFile(plistFile))
     {
         ret->autorelease();
@@ -147,7 +151,7 @@ ParticleSystem * ParticleSystem::create(const std::string& plistFile)
 
 ParticleSystem* ParticleSystem::createWithTotalParticles(int numberOfParticles)
 {
-    ParticleSystem *ret = new (std::nothrow) ParticleSystem();
+    ParticleSystem *ret = new ParticleSystem();
     if (ret && ret->initWithTotalParticles(numberOfParticles))
     {
         ret->autorelease();
@@ -170,7 +174,7 @@ bool ParticleSystem::initWithFile(const std::string& plistFile)
 
     CCASSERT( !dict.empty(), "Particles: file not found");
     
-    // FIXME: compute path from a path, should define a function somewhere to do it
+    // XXX compute path from a path, should define a function somewhere to do it
     string listFilePath = plistFile;
     if (listFilePath.find('/') != string::npos)
     {
@@ -253,7 +257,7 @@ bool ParticleSystem::initWithDictionary(ValueMap& dictionary, const std::string&
             // position
             float x = dictionary["sourcePositionx"].asFloat();
             float y = dictionary["sourcePositiony"].asFloat();
-            this->setPosition(x,y);            
+            this->setPosition( Vec2(x,y) );            
             _posVar.x = dictionary["sourcePositionVariancex"].asFloat();
             _posVar.y = dictionary["sourcePositionVariancey"].asFloat();
 
@@ -401,7 +405,7 @@ bool ParticleSystem::initWithDictionary(ValueMap& dictionary, const std::string&
                         CC_BREAK_IF(!deflated);
                         
                         // For android, we should retain it in VolatileTexture::addImage which invoked in Director::getInstance()->getTextureCache()->addUIImage()
-                        image = new (std::nothrow) Image();
+                        image = new Image();
                         bool isOK = image->initWithImageData(deflated, deflatedLen);
                         CCASSERT(isOK, "CCParticleSystem: error init image with Data");
                         CC_BREAK_IF(!isOK);
@@ -461,7 +465,7 @@ bool ParticleSystem::initWithTotalParticles(int numberOfParticles)
     _emitterMode = Mode::GRAVITY;
 
     // default: modulate
-    // FIXME:: not used
+    // XXX: not used
     //    colorModulate = YES;
 
     _isAutoRemoveOnFinish = false;
@@ -612,14 +616,6 @@ void ParticleSystem::initParticle(tParticle* particle)
 
 void ParticleSystem::onEnter()
 {
-#if CC_ENABLE_SCRIPT_BINDING
-    if (_scriptType == kScriptTypeJavascript)
-    {
-        if (ScriptEngineManager::sendNodeEventToJSExtended(this, kNodeOnEnter))
-            return;
-    }
-#endif
-    
     Node::onEnter();
     
     // update after action in run!
@@ -694,8 +690,6 @@ void ParticleSystem::update(float dt)
     }
 
     {
-        Mat4 worldToNodeTM = getWorldToNodeTransform();
-        
         while (_particleIdx < _particleCount)
         {
             tParticle *p = &_particles[_particleIdx];
@@ -769,15 +763,7 @@ void ParticleSystem::update(float dt)
 
                 Vec2    newPos;
 
-                if (_positionType == PositionType::FREE)
-                {
-                    Vec3 p1(currentPosition.x,currentPosition.y,0),p2(p->startPos.x,p->startPos.y,0);
-                    worldToNodeTM.transformPoint(&p1);
-                    worldToNodeTM.transformPoint(&p2);
-                    p1 = p1 - p2;
-                    newPos = p->pos - Vec2(p1.x,p1.y);
-                }
-                else if(_positionType == PositionType::RELATIVE)
+                if (_positionType == PositionType::FREE || _positionType == PositionType::RELATIVE)
                 {
                     Vec2 diff = currentPosition - p->startPos;
                     newPos = p->pos - diff;

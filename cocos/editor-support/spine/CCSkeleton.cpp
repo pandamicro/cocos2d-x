@@ -41,19 +41,19 @@ using std::max;
 namespace spine {
 
 Skeleton* Skeleton::createWithData (spSkeletonData* skeletonData, bool isOwnsSkeletonData) {
-	Skeleton* node = new (std::nothrow) Skeleton(skeletonData, isOwnsSkeletonData);
+	Skeleton* node = new Skeleton(skeletonData, isOwnsSkeletonData);
 	node->autorelease();
 	return node;
 }
 
 Skeleton* Skeleton::createWithFile (const char* skeletonDataFile, spAtlas* atlas, float scale) {
-	Skeleton* node = new (std::nothrow) Skeleton(skeletonDataFile, atlas, scale);
+	Skeleton* node = new Skeleton(skeletonDataFile, atlas, scale);
 	node->autorelease();
 	return node;
 }
 
 Skeleton* Skeleton::createWithFile (const char* skeletonDataFile, const char* atlasFile, float scale) {
-	Skeleton* node = new (std::nothrow) Skeleton(skeletonDataFile, atlasFile, scale);
+	Skeleton* node = new Skeleton(skeletonDataFile, atlasFile, scale);
 	node->autorelease();
 	return node;
 }
@@ -125,15 +125,15 @@ void Skeleton::update (float deltaTime) {
 	spSkeleton_update(skeleton, deltaTime * timeScale);
 }
 
-void Skeleton::draw(cocos2d::Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void Skeleton::draw(cocos2d::Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
 
     _customCommand.init(_globalZOrder);
-    _customCommand.func = CC_CALLBACK_0(Skeleton::onDraw, this, transform, flags);
+    _customCommand.func = CC_CALLBACK_0(Skeleton::onDraw, this, transform, transformUpdated);
     renderer->addCommand(&_customCommand);
 }
     
-void Skeleton::onDraw(const Mat4 &transform, uint32_t flags)
+void Skeleton::onDraw(const Mat4 &transform, bool transformUpdated)
 {
     getGLProgram()->use();
     getGLProgram()->setUniformsForBuiltins(transform);
@@ -276,15 +276,7 @@ Rect Skeleton::getBoundingBox () const {
 }
 
 void Skeleton::onEnter() {
-#if CC_ENABLE_SCRIPT_BINDING
-    if (_scriptType == kScriptTypeJavascript)
-    {
-        if (ScriptEngineManager::sendNodeEventToJSExtended(this, kNodeOnEnter))
-            return;
-    }
-#endif
-    
-    Node::onEnter();
+	Node::onEnter();
 	scheduleUpdate();
 }
 	

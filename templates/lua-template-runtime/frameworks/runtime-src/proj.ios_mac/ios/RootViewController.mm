@@ -25,7 +25,7 @@
 
 #import "RootViewController.h"
 #import "cocos2d.h"
-#import "platform/ios/CCEAGLView-ios.h"
+#import "CCEAGLView.h"
 #include "ConfigParser.h"
 
 @implementation RootViewController

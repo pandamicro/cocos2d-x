@@ -2,40 +2,46 @@
 --------------------------------
 -- @module ShuffleTiles
 -- @extend TiledGrid3DAction
--- @parent_module cc
 
 --------------------------------
--- 
+-- @function [parent=#ShuffleTiles] placeTile 
+-- @param self
+-- @param #cc.Vec2 vec2
+-- @param #cc.Tile tile
+        
+--------------------------------
+-- @function [parent=#ShuffleTiles] shuffle 
+-- @param self
+-- @param #unsigned int int
+-- @param #unsigned int int
+        
+--------------------------------
 -- @function [parent=#ShuffleTiles] getDelta 
 -- @param self
--- @param #size_table pos
+-- @param #size_table size
 -- @return size_table#size_table ret (return value: size_table)
         
 --------------------------------
---  creates the action with a random seed, the grid size and the duration 
 -- @function [parent=#ShuffleTiles] create 
 -- @param self
--- @param #float duration
--- @param #size_table gridSize
--- @param #unsigned int seed
+-- @param #float float
+-- @param #size_table size
+-- @param #unsigned int int
 -- @return ShuffleTiles#ShuffleTiles ret (return value: cc.ShuffleTiles)
         
 --------------------------------
--- 
 -- @function [parent=#ShuffleTiles] startWithTarget 
 -- @param self
--- @param #cc.Node target
+-- @param #cc.Node node
         
 --------------------------------
--- 
 -- @function [parent=#ShuffleTiles] clone 
 -- @param self
 -- @return ShuffleTiles#ShuffleTiles ret (return value: cc.ShuffleTiles)
         
 --------------------------------
--- 
 -- @function [parent=#ShuffleTiles] update 
 -- @param self
--- @param #float time
+-- @param #float float
         
 return nil

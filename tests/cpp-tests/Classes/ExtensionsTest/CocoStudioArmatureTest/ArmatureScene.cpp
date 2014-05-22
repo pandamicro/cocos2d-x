@@ -19,64 +19,61 @@ Layer *CreateLayer(int index)
     switch(index)
     {
     case TEST_ASYNCHRONOUS_LOADING:
-        pLayer = new (std::nothrow) TestAsynchronousLoading();
+        pLayer = new TestAsynchronousLoading();
         break;
     case TEST_DIRECT_LOADING:
-        pLayer = new (std::nothrow) TestDirectLoading();
+        pLayer = new TestDirectLoading();
         break;
     case TEST_DRAGON_BONES_2_0:
-        pLayer = new (std::nothrow) TestDragonBones20();
+        pLayer = new TestDragonBones20();
         break;
     case TEST_COCOSTUDIO_WITH_SKELETON:
-        pLayer = new (std::nothrow) TestCSWithSkeleton();
+        pLayer = new TestCSWithSkeleton();
         break;
     case TEST_PERFORMANCE:
-        pLayer = new (std::nothrow) TestPerformance();
+        pLayer = new TestPerformance();
         break;
 //    case TEST_PERFORMANCE_BATCHNODE:
-//        pLayer = new (std::nothrow) TestPerformanceBatchNode();
+//        pLayer = new TestPerformanceBatchNode();
 //        break;
     case TEST_CHANGE_ZORDER:
-        pLayer = new (std::nothrow) TestChangeZorder();
+        pLayer = new TestChangeZorder();
         break;
     case TEST_ANIMATION_EVENT:
-        pLayer = new (std::nothrow) TestAnimationEvent();
+        pLayer = new TestAnimationEvent();
         break;
     case TEST_FRAME_EVENT:
-        pLayer = new (std::nothrow) TestFrameEvent();
+        pLayer = new TestFrameEvent();
         break;
     case  TEST_PARTICLE_DISPLAY:
-        pLayer = new (std::nothrow) TestParticleDisplay();
+        pLayer = new TestParticleDisplay();
         break;
     case TEST_USE_DIFFERENT_PICTURE:
-        pLayer = new (std::nothrow) TestUseMutiplePicture();
+        pLayer = new TestUseMutiplePicture();
         break;
     case TEST_COLLIDER_DETECTOR:
-        pLayer = new (std::nothrow) TestColliderDetector();
+        pLayer = new TestColliderDetector();
         break;
     case TEST_BOUDINGBOX:
-        pLayer = new (std::nothrow) TestBoundingBox();
+        pLayer = new TestBoundingBox();
         break;
     case TEST_ANCHORPOINT:
-        pLayer = new (std::nothrow) TestAnchorPoint();
+        pLayer = new TestAnchorPoint();
         break;
     case TEST_ARMATURE_NESTING:
-        pLayer = new (std::nothrow) TestArmatureNesting();
+        pLayer = new TestArmatureNesting();
         break;
     case TEST_ARMATURE_NESTING_2:
-        pLayer = new (std::nothrow) TestArmatureNesting2();
+        pLayer = new TestArmatureNesting2();
         break;
     case TEST_PLAY_SEVERAL_MOVEMENT:
-        pLayer = new (std::nothrow) TestPlaySeveralMovement();
+        pLayer = new TestPlaySeveralMovement();
         break;
     case TEST_EASING:
-        pLayer = new (std::nothrow) TestEasing();
+        pLayer = new TestEasing();
         break;
     case TEST_CHANGE_ANIMATION_INTERNAL:
-        pLayer = new (std::nothrow) TestChangeAnimationInternal();
-        break;
-    case TEST_DIRECT_FROM_BINARY:
-        pLayer = new (std::nothrow) TestLoadFromBinary();
+        pLayer = new TestChangeAnimationInternal();
         break;
     default:
         break;
@@ -163,7 +160,7 @@ void ArmatureTestLayer::onEnter()
     auto label = Label::createWithTTF(pTitle, "fonts/arial.ttf", 18);
     label->setColor(Color3B::BLACK);
     addChild(label, 1, 10000);
-    label->setPosition(VisibleRect::center().x, VisibleRect::top().y - 30);
+    label->setPosition( Vec2(VisibleRect::center().x, VisibleRect::top().y - 30) );
 
     std::string strSubtitle = subtitle();
     if( ! strSubtitle.empty() )
@@ -171,7 +168,7 @@ void ArmatureTestLayer::onEnter()
         auto l = Label::createWithTTF(strSubtitle.c_str(), "fonts/arial.ttf", 18);
         l->setColor(Color3B::BLACK);
         addChild(l, 1, 10001);
-        l->setPosition(VisibleRect::center().x, VisibleRect::top().y - 60);
+        l->setPosition( Vec2(VisibleRect::center().x, VisibleRect::top().y - 60) );
     }
 
     // add menu
@@ -182,9 +179,9 @@ void ArmatureTestLayer::onEnter()
     Menu *menu = Menu::create(backItem, restartItem, nextItem, nullptr);
 
     menu->setPosition(Vec2::ZERO);
-    backItem->setPosition(VisibleRect::center().x - restartItem->getContentSize().width * 2, VisibleRect::bottom().y + restartItem->getContentSize().height / 2);
-    restartItem->setPosition(VisibleRect::center().x, VisibleRect::bottom().y + restartItem->getContentSize().height / 2);
-    nextItem->setPosition(VisibleRect::center().x + restartItem->getContentSize().width * 2, VisibleRect::bottom().y + restartItem->getContentSize().height / 2);
+    backItem->setPosition(Vec2(VisibleRect::center().x - restartItem->getContentSize().width * 2, VisibleRect::bottom().y + restartItem->getContentSize().height / 2));
+    restartItem->setPosition(Vec2(VisibleRect::center().x, VisibleRect::bottom().y + restartItem->getContentSize().height / 2));
+    nextItem->setPosition(Vec2(VisibleRect::center().x + restartItem->getContentSize().width * 2, VisibleRect::bottom().y + restartItem->getContentSize().height / 2));
 
     addChild(menu, 100);
 
@@ -211,21 +208,21 @@ std::string ArmatureTestLayer::subtitle() const
 
 void ArmatureTestLayer::restartCallback(Ref *pSender)
 {
-    Scene *s = new (std::nothrow) ArmatureTestScene();
+    Scene *s = new ArmatureTestScene();
     s->addChild( RestartTest() );
     Director::getInstance()->replaceScene(s);
     s->release();
 }
 void ArmatureTestLayer::nextCallback(Ref *pSender)
 {
-    Scene *s = new (std::nothrow) ArmatureTestScene();
+    Scene *s = new ArmatureTestScene();
     s->addChild( NextTest() );
     Director::getInstance()->replaceScene(s);
     s->release();
 }
 void ArmatureTestLayer::backCallback(Ref *pSender)
 {
-    Scene *s = new (std::nothrow) ArmatureTestScene();
+    Scene *s = new ArmatureTestScene();
     s->addChild( BackTest() );
     Director::getInstance()->replaceScene(s);
     s->release();
@@ -248,17 +245,17 @@ void TestAsynchronousLoading::onEnter()
 
 
     //! create a new thread to load data
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/knight.png", "armature/knight.plist", "armature/knight.xml", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/weapon.png", "armature/weapon.plist", "armature/weapon.xml", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/robot.png", "armature/robot.plist", "armature/robot.xml", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/cyborg.png", "armature/cyborg.plist", "armature/cyborg.xml", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/Dragon.png", "armature/Dragon.plist", "armature/Dragon.xml", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/Cowboy.ExportJson", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/hero.ExportJson", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/horse.ExportJson", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/bear.ExportJson", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/HeroAnimation.ExportJson", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
-    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/testEasing.ExportJson", this, CC_SCHEDULE_SELECTOR(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/knight.png", "armature/knight.plist", "armature/knight.xml", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/weapon.png", "armature/weapon.plist", "armature/weapon.xml", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/robot.png", "armature/robot.plist", "armature/robot.xml", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/cyborg.png", "armature/cyborg.plist", "armature/cyborg.xml", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/Dragon.png", "armature/Dragon.plist", "armature/Dragon.xml", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/Cowboy.ExportJson", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/hero.ExportJson", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/horse.ExportJson", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/bear.ExportJson", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/HeroAnimation.ExportJson", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
+    ArmatureDataManager::getInstance()->addArmatureFileInfoAsync("armature/testEasing.ExportJson", this, schedule_selector(TestAsynchronousLoading::dataLoaded));
 }
 
 std::string TestAsynchronousLoading::title() const
@@ -306,7 +303,7 @@ void TestDirectLoading::onEnter()
 
     Armature *armature = Armature::create("bear");
     armature->getAnimation()->playWithIndex(0);
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y));
     addChild(armature);
 }
 std::string TestDirectLoading::title() const
@@ -323,7 +320,7 @@ void TestCSWithSkeleton::onEnter()
     armature->getAnimation()->playWithIndex(0);
     armature->setScale(0.2f);
 
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y/*-100*/);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y/*-100*/));
     addChild(armature);
 }
 
@@ -373,7 +370,7 @@ void TestPerformance::onEnter()
 
     Menu *menu = Menu::create(decrease, increase, nullptr);
     menu->alignItemsHorizontally();
-    menu->setPosition(VisibleRect::getVisibleRect().size.width/2, VisibleRect::getVisibleRect().size.height-100);
+    menu->setPosition(Vec2(VisibleRect::getVisibleRect().size.width/2, VisibleRect::getVisibleRect().size.height-100));
     addChild(menu, 10000);
 
     armatureCount = frames = times = lastTimes = 0;
@@ -413,11 +410,11 @@ void TestPerformance::addArmature(int number)
         armatureCount++;
 
         Armature *armature = nullptr;
-        armature = new (std::nothrow) Armature();
-        armature->init("Cowboy");
+        armature = new Armature();
+        armature->init("Knight_f/Knight");
         armature->getAnimation()->playWithIndex(0);
         armature->setPosition(50 + armatureCount * 2, 150);
-        armature->setScale(0.1f);
+        armature->setScale(0.6f);
         addArmatureToParent(armature);
         armature->release();
     }
@@ -471,7 +468,7 @@ void TestChangeZorder::onEnter()
 
     armature = Armature::create("Knight_f/Knight");
     armature->getAnimation()->playWithIndex(0);
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y - 100);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y - 100));
     ++currentTag;
     armature->setScale(0.6f);
     addChild(armature, currentTag, currentTag);
@@ -479,18 +476,18 @@ void TestChangeZorder::onEnter()
     armature = Armature::create("Cowboy");
     armature->getAnimation()->playWithIndex(0);
     armature->setScale(0.24f);
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y - 100);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y - 100));
     ++currentTag;
     addChild(armature, currentTag, currentTag);
 
     armature = Armature::create("Dragon");
     armature->getAnimation()->playWithIndex(0);
-    armature->setPosition(VisibleRect::center().x , VisibleRect::center().y - 100);
+    armature->setPosition(Vec2(VisibleRect::center().x , VisibleRect::center().y - 100));
     ++currentTag;
     armature->setScale(0.6f);
     addChild(armature, currentTag, currentTag);
 
-    schedule( CC_SCHEDULE_SELECTOR(TestChangeZorder::changeZorder), 1);
+    schedule( schedule_selector(TestChangeZorder::changeZorder), 1);
 
     currentTag = 0;
 }
@@ -519,7 +516,7 @@ void TestAnimationEvent::onEnter()
     armature->getAnimation()->play("Fire");
     armature->setScaleX(-0.24f);
     armature->setScaleY(0.24f);
-    armature->setPosition(VisibleRect::left().x + 50, VisibleRect::left().y);
+    armature->setPosition(Vec2(VisibleRect::left().x + 50, VisibleRect::left().y));
 
     /*
     * Set armature's movement event callback function
@@ -574,7 +571,7 @@ void TestFrameEvent::onEnter()
     Armature *armature = Armature::create("HeroAnimation");
     armature->getAnimation()->play("attack");
     armature->getAnimation()->setSpeedScale(0.5);
-    armature->setPosition(VisibleRect::center().x - 50, VisibleRect::center().y -100);
+    armature->setPosition(Vec2(VisibleRect::center().x - 50, VisibleRect::center().y -100));
 
     /*
      * Set armature's frame event callback function
@@ -585,13 +582,13 @@ void TestFrameEvent::onEnter()
     _gridNode->addChild(armature);
     addChild(_gridNode);
 
-    schedule( CC_SCHEDULE_SELECTOR(TestFrameEvent::checkAction) );
+    schedule( schedule_selector(TestFrameEvent::checkAction) );
 }
 std::string TestFrameEvent::title() const
 {
     return "Test Frame Event";
 }
-void TestFrameEvent::onFrameEvent(cocostudio::Bone *bone, const std::string& evt, int originFrameIndex, int currentFrameIndex)
+void TestFrameEvent::onFrameEvent(Bone *bone, const std::string& evt, int originFrameIndex, int currentFrameIndex)
 {
     CCLOG("(%s) emit a frame event (%s) at frame index (%d).", bone->getName().c_str(), evt.c_str(), currentFrameIndex);
 
@@ -633,7 +630,7 @@ void TestParticleDisplay::onEnter()
     ParticleSystem *p1 = CCParticleSystemQuad::create("Particles/SmallSun.plist");
     ParticleSystem *p2 = CCParticleSystemQuad::create("Particles/SmallSun.plist");
 
-    cocostudio::Bone *bone  = cocostudio::Bone::create("p1");
+    Bone *bone  = Bone::create("p1");
     bone->addDisplay(p1, 0);
     bone->changeDisplayWithIndex(0, true);
     bone->setIgnoreMovementBoneData(true);
@@ -641,7 +638,7 @@ void TestParticleDisplay::onEnter()
     bone->setScale(1.2f);
     armature->addBone(bone, "bady-a3");
 
-    bone  = cocostudio::Bone::create("p2");
+    bone  = Bone::create("p2");
     bone->addDisplay(p2, 0);
     bone->changeDisplayWithIndex(0, true);
     bone->setIgnoreMovementBoneData(true);
@@ -684,7 +681,7 @@ void TestUseMutiplePicture::onEnter()
 
     armature = Armature::create("Knight_f/Knight");
     armature->getAnimation()->playWithIndex(0);
-    armature->setPosition(VisibleRect::center().x, VisibleRect::left().y);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::left().y));
     armature->setScale(1.2f);
     addChild(armature);
 
@@ -744,7 +741,7 @@ void TestColliderDetector::onEnter()
     armature->getAnimation()->setSpeedScale(0.2f);
     armature->setScaleX(-0.2f);
     armature->setScaleY(0.2f);
-    armature->setPosition(VisibleRect::left().x + 70, VisibleRect::left().y);
+    armature->setPosition(Vec2(VisibleRect::left().x + 70, VisibleRect::left().y));
 
     /*
     * Set armature's frame event callback function
@@ -757,17 +754,13 @@ void TestColliderDetector::onEnter()
     armature2->getAnimation()->play("Walk");
     armature2->setScaleX(-0.2f);
     armature2->setScaleY(0.2f);
-    armature2->setPosition(VisibleRect::right().x - 60, VisibleRect::left().y);
+    armature2->setPosition(Vec2(VisibleRect::right().x - 60, VisibleRect::left().y));
     addChild(armature2);
 
 #if ENABLE_PHYSICS_BOX2D_DETECT || ENABLE_PHYSICS_CHIPMUNK_DETECT
     bullet = cocos2d::extension::PhysicsSprite::createWithSpriteFrameName("25.png");
 #elif ENABLE_PHYSICS_SAVE_CALCULATED_VERTEX
     bullet = Sprite::createWithSpriteFrameName("25.png");
-
-    drawNode = DrawNode::create();
-    addChild(drawNode, -1);
-
 #endif
     addChild(bullet);
 
@@ -777,7 +770,7 @@ std::string TestColliderDetector::title() const
 {
     return "Test Collider Detector";
 }
-void TestColliderDetector::onFrameEvent(cocostudio::Bone *bone, const std::string& evt, int originFrameIndex, int currentFrameIndex)
+void TestColliderDetector::onFrameEvent(Bone *bone, const std::string& evt, int originFrameIndex, int currentFrameIndex)
 {
     CCLOG("(%s) emit a frame event (%s) at frame index (%d).", bone->getName().c_str(), evt.c_str(), currentFrameIndex);
 
@@ -788,7 +781,7 @@ void TestColliderDetector::onFrameEvent(cocostudio::Bone *bone, const std::strin
     */
 
     Vec2 p = armature->getBone("Layer126")->getDisplayRenderNode()->convertToWorldSpaceAR(Vec2(0, 0));
-    bullet->setPosition(p.x + 60, p.y);
+    bullet->setPosition(Vec2(p.x + 60, p.y));
 
     bullet->stopAllActions();
     bullet->runAction(CCMoveBy::create(1.5f, Vec2(350, 0)));
@@ -849,7 +842,7 @@ void TestColliderDetector::onExit()
 
     ArmatureTestLayer::onExit();
 }
-void TestColliderDetector::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void TestColliderDetector::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
     GL::enableVertexAttribs( GL::VERTEX_ATTRIB_FLAG_POSITION );
     Director* director = Director::getInstance();
@@ -881,10 +874,10 @@ void TestColliderDetector::initWorld()
     world = new b2World(noGravity);
     world->SetAllowSleeping(true);
 
-    listener = new (std::nothrow) ContactListener();
+    listener = new ContactListener();
     world->SetContactListener(listener);
 
-    debugDraw = new (std::nothrow) GLESDebugDraw( PT_RATIO );
+    debugDraw = new GLESDebugDraw( PT_RATIO );
     world->SetDebugDraw(debugDraw);
 
     uint32 flags = 0;
@@ -916,7 +909,7 @@ void TestColliderDetector::initWorld()
 
     bullet->setB2Body(body);
     bullet->setPTMRatio(PT_RATIO);
-    bullet->setPosition(-100, -100);
+    bullet->setPosition( Vec2( -100, -100) );
 
     body = world->CreateBody(&bodyDef);
     armature2->setBody(body);
@@ -1029,10 +1022,10 @@ void TestColliderDetector::update(float delta)
 
     // This code is just telling how to get the vertex.
     // For a more accurate collider detection, you need to implemente yourself.
-    const Map<std::string, cocostudio::Bone*>& map = armature2->getBoneDic();
+    const Map<std::string, Bone*>& map = armature2->getBoneDic();
     for(const auto& element : map)
     {
-        cocostudio::Bone *bone = element.second;
+        Bone *bone = element.second;
         ColliderDetector *detector = bone->getColliderDetector();
 
         if (!detector)
@@ -1072,37 +1065,23 @@ void TestColliderDetector::update(float delta)
         }
     }
 }
-void TestColliderDetector::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void TestColliderDetector::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
-    for(auto& element : armature2->getBoneDic())
-    {
-        Bone *bone = element.second;
-        ColliderDetector *detector = bone->getColliderDetector();
-        
-        if (!detector)
-            continue;
-        
-        const cocos2d::Vector<ColliderBody*>& bodyList = detector->getColliderBodyList();
-        
-        for (auto& object : bodyList)
-        {
-            ColliderBody *body = static_cast<ColliderBody*>(object);
-            const std::vector<Vec2> &vertexList = body->getCalculatedVertexList();
-            
-            unsigned long length = vertexList.size();
-            Vec2 *points = new Vec2[length];
-            for (unsigned long i = 0; i<length; i++)
-            {
-                Vec2 p = vertexList.at(i);
-                points[i].x = p.x;
-                points[i].y = p.y;
-            }
-            drawNode->clear();
-            drawNode->drawPoly(points, (unsigned int)length, true, Color4F(1.0, 1.0, 1.0, 1.0));
-            
-            delete []points;
-        }
-    }
+    _customCommand.init(_globalZOrder);
+    _customCommand.func = CC_CALLBACK_0(TestColliderDetector::onDraw, this, transform, transformUpdated);
+    renderer->addCommand(&_customCommand);
+}
+
+void TestColliderDetector::onDraw(const Mat4 &transform, bool transformUpdated)
+{
+    Director* director = Director::getInstance();
+    CCASSERT(nullptr != director, "Director is null when seting matrix stack");
+    director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, transform);
+    
+    armature2->drawContour();
+    
+    director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 }
 #endif
 
@@ -1122,19 +1101,28 @@ void TestBoundingBox::onEnter()
 
     Sprite *sprite = Sprite::create("Images/background3.png");
     armature->addChild(sprite);
-
-    _drawNode = DrawNode::create();
-    this->addChild(_drawNode);
 }
 std::string TestBoundingBox::title() const
 {
     return "Test BoundingBox";
 }
-void TestBoundingBox::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void TestBoundingBox::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
+    _customCommand.init(_globalZOrder);
+    _customCommand.func = CC_CALLBACK_0(TestBoundingBox::onDraw, this, transform, transformUpdated);
+    renderer->addCommand(&_customCommand);
+
+}
+
+void TestBoundingBox::onDraw(const Mat4 &transform, bool transformUpdated)
+{
+    getGLProgram()->use();
+    getGLProgram()->setUniformsForBuiltins(transform);
+    
     rect = armature->getBoundingBox();
-    _drawNode->clear();
-    _drawNode->drawRect(rect.origin, Vec2(rect.getMaxX(), rect.getMaxY()), Color4F(1.0, 0.5, 0.5, 1.0));
+    
+    DrawPrimitives::setDrawColor4B(100, 100, 100, 255);
+    DrawPrimitives::drawRect(rect.origin, Vec2(rect.getMaxX(), rect.getMaxY()));
 }
 
 void TestAnchorPoint::onEnter()
@@ -1207,7 +1195,7 @@ void TestArmatureNesting::onTouchesEnded(const std::vector<Touch*>& touches, Eve
 
 Hero *Hero::create(const char *name)
 {
-    Hero *hero = new (std::nothrow) Hero();
+    Hero *hero = new Hero();
     if (hero && hero->init(name))
     {
         hero->autorelease();
@@ -1252,14 +1240,14 @@ void Hero::changeMount(Armature *armature)
         removeFromParentAndCleanup(false);
 
         //Get the hero bone
-        cocostudio::Bone *bone = armature->getBone("hero");
+        Bone *bone = armature->getBone("hero");
         //Add hero as a display to this bone
         bone->addDisplay(this, 0);
         //Change this bone's display
         bone->changeDisplayWithIndex(0, true);
         bone->setIgnoreMovementBoneData(true);
 
-        setPosition(0,0);
+        setPosition(Vec2(0,0));
         //Change animation
         playWithIndex(1);
 
@@ -1295,7 +1283,7 @@ void TestArmatureNesting2::onEnter()
     Menu* pMenu =Menu::create(pMenuItem, nullptr);
 
     pMenu->setPosition( Vec2() );
-    pMenuItem->setPosition(VisibleRect::right().x - 67, VisibleRect::bottom().y + 50);
+    pMenuItem->setPosition( Vec2( VisibleRect::right().x - 67, VisibleRect::bottom().y + 50) );
 
     addChild(pMenu, 2);
 
@@ -1303,7 +1291,7 @@ void TestArmatureNesting2::onEnter()
     hero = Hero::create("hero");
     hero->setLayer(this);
     hero->playWithIndex(0);
-    hero->setPosition(VisibleRect::left().x + 20, VisibleRect::left().y);
+    hero->setPosition(Vec2(VisibleRect::left().x + 20, VisibleRect::left().y));
     addChild(hero);
 
     //Create 3 mount
@@ -1396,13 +1384,13 @@ void TestPlaySeveralMovement::onEnter()
 //    int index[] = {0, 1, 2};
 //    std::vector<int> indexes(index, index+3);
 
-    Armature *armature = nullptr;
+    Armature *armature = NULL;
     armature = Armature::create("Cowboy");
     armature->getAnimation()->playWithNames(names);
 //    armature->getAnimation()->playWithIndexes(indexes);
     armature->setScale(0.2f);
 
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y/*-100*/);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y/*-100*/));
     addChild(armature);
 }
 std::string TestPlaySeveralMovement::title() const
@@ -1430,7 +1418,7 @@ void TestEasing::onEnter()
     armature->getAnimation()->playWithIndex(0);
     armature->setScale(0.8f);
 
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y));
     addChild(armature);
 
     updateSubTitle();
@@ -1467,12 +1455,12 @@ void TestChangeAnimationInternal::onEnter()
     listener->onTouchesEnded = CC_CALLBACK_2(TestPlaySeveralMovement::onTouchesEnded, this);
     _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
 
-    Armature *armature = nullptr;
+    Armature *armature = NULL;
     armature = Armature::create("Cowboy");
     armature->getAnimation()->playWithIndex(0);
     armature->setScale(0.2f);
 
-    armature->setPosition(VisibleRect::center().x, VisibleRect::center().y);
+    armature->setPosition(Vec2(VisibleRect::center().x, VisibleRect::center().y));
     addChild(armature);
 }
 void TestChangeAnimationInternal::onExit()
@@ -1498,106 +1486,4 @@ void TestChangeAnimationInternal::onTouchesEnded(const std::vector<Touch*>& touc
     {
         Director::getInstance()->setAnimationInterval(1/30.0f);
     }
-}
-
-
-
-//TestDirectFromBinay
-
-const  char* TestLoadFromBinary::m_binaryFilesNames[BINARYFILECOUNT] ={"armature/bear.csb","armature/horse.csb",
-	"armature/Cowboy.csb","armature/hero.csb",
-	"armature/HeroAnimation.csb","armature/testEasing.csb"};
-const  char* TestLoadFromBinary::m_armatureNames[BINARYFILECOUNT] ={"bear","horse",
-	"Cowboy","hero",
-	"HeroAnimation","testEasing"};
-
-
-void TestLoadFromBinary::onEnter()
-{
-	ArmatureTestLayer::onEnter();
-	
-    auto listener = EventListenerTouchAllAtOnce::create();
-    listener->onTouchesEnded = CC_CALLBACK_2(TestLoadFromBinary::onTouchesEnded, this);    _eventDispatcher->addEventListenerWithSceneGraphPriority(listener, this);
-
-	m_armatureIndex = -1; // none
-    
-	// remove json created
-	// remove sync resource
-	ArmatureDataManager::getInstance()->removeArmatureFileInfo("armature/bear.ExportJson");
-	ArmatureDataManager::getInstance()->removeArmatureFileInfo(m_binaryFilesNames[0]);
-	// load from binary
-	ArmatureDataManager::getInstance()->addArmatureFileInfo(m_binaryFilesNames[0]);
-    
-	m_armature = Armature::create(m_armatureNames[0]);
-	m_armature->getAnimation()->playWithIndex(0);
-	m_armature->setScale(1.0f);
-    
-	m_armature->setPosition(VisibleRect::center().x, VisibleRect::center().y);
-	addChild(m_armature);
-    
-}
-
-
-std::string TestLoadFromBinary::title() const
-{
-	return "Test load from binary file";
-}
-std::string TestLoadFromBinary::subtitle() const
-{
-	return "direct load.Touch to change to Asynchronous load.";
-}
-
-void TestLoadFromBinary::onTouchesEnded(const std::vector<Touch*>& touches, Event* event)
-{
-	if(-1 == m_armatureIndex )
-	{
-		m_armatureIndex = -2;    // is loading
-        
-        // remove json created  and need remove their names: exprtjsone & csbs
-		ArmatureDataManager::getInstance()->removeArmatureFileInfo(m_binaryFilesNames[0]);
-		ArmatureDataManager::getInstance()->removeArmatureFileInfo("armature/Cowboy.ExportJson");
-		ArmatureDataManager::getInstance()->removeArmatureFileInfo("armature/hero.ExportJson");
-		ArmatureDataManager::getInstance()->removeArmatureFileInfo("armature/horse.ExportJson");
-		ArmatureDataManager::getInstance()->removeArmatureFileInfo("armature/HeroAnimation.ExportJson");
-		ArmatureDataManager::getInstance()->removeArmatureFileInfo("armature/testEasing.ExportJson");
-        for( int i = 0; i < BINARYFILECOUNT; i++)
-		{
-			ArmatureDataManager::getInstance()->removeArmatureFileInfo(m_binaryFilesNames[i]);
-        }
-        
-		for( int i = 0; i < BINARYFILECOUNT; i++)
-		{
-			ArmatureDataManager::getInstance()->addArmatureFileInfoAsync(m_binaryFilesNames[i], this, CC_SCHEDULE_SELECTOR(TestLoadFromBinary::dataLoaded));
-		}
-        
-	}
-	else if(m_armatureIndex>=0 && m_armature != nullptr)
-	{
-		m_armature->removeFromParent();
-		m_armatureIndex = m_armatureIndex==BINARYFILECOUNT-1 ? 0 : m_armatureIndex+1;
-		m_armature = Armature::create(m_armatureNames[m_armatureIndex]);
-		m_armature->setPosition(VisibleRect::center().x, VisibleRect::center().y);
-		if(m_armatureIndex == 2 )  // cowboy is 0.2
-			m_armature->setScale(0.2f);
-		m_armature->getAnimation()->playWithIndex(0);
-		addChild(m_armature);
-	}
-}
-
-
-void TestLoadFromBinary::dataLoaded( float percent )
-{
-	Label *label = (Label *)getChildByTag(10001);
-	if (label)
-	{
-		char pszPercent[255];
-		sprintf(pszPercent, "%s %f", "Asynchronous loading: ", percent * 100);
-		label->setString(pszPercent);
-	}
-    
-	if (percent >= 1)
-	{
-		label->setString("Touch to change armature");
-		m_armatureIndex = 0;
-	}
 }

@@ -65,12 +65,11 @@ public:
     // Overrides
     //
     virtual void addChild(Node * child, int zOrder, int tag) override;
-    virtual void addChild(Node * child, int zOrder, const std::string &name) override;
     virtual void removeChild(Node* child, bool cleanup) override;
     virtual void removeAllChildrenWithCleanup(bool cleanup) override;
-    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags) override;
+    virtual void visit(Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated) override;
 
-CC_CONSTRUCTOR_ACCESS:
+protected:
     /** Adds a child to the container with a z-order, a parallax ratio and a position offset
      It returns self, so you can chain several addChilds.
      @since v0.8
@@ -83,7 +82,6 @@ CC_CONSTRUCTOR_ACCESS:
      */
     virtual ~ParallaxNode();
 
-protected:
     Vec2 absolutePosition();
 
     Vec2    _lastPosition;

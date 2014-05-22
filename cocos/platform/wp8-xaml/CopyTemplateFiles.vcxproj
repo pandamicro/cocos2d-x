@@ -68,13 +68,12 @@
     </Link>
     <PostBuildEvent>
       <Command>echo "Copying WP8-XAML CPP template files"
-xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\src\" /eiycq</Command>
+xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -90,13 +89,12 @@ xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\
     </Link>
     <PostBuildEvent>
       <Command>echo "Copying WP8-XAML CPP template files"
-xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\src\" /eiycq</Command>
+xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
@@ -112,13 +110,12 @@ xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\
     </Link>
     <PostBuildEvent>
       <Command>echo "Copying WP8-XAML CPP template files"
-xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\src\" /eiycq</Command>
+xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
@@ -134,13 +131,12 @@ xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\
     </Link>
     <PostBuildEvent>
       <Command>echo "Copying WP8-XAML CPP template files"
-xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\App\*" /eiycq
-xcopy "cpp" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\AppComponent\src\" /eiycq</Command>
+xcopy "xaml\App.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\App.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\MainPage.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq
+xcopy "xaml\EditBox.xaml.cs" "..\..\..\templates\cpp-template-default\proj.wp8-xaml\HelloCpp\*" /eiycq</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -43,7 +43,7 @@ public delegate void RequestAdditionalFrameHandler();
 public ref class Direct3DInterop sealed : public Windows::Phone::Input::Interop::IDrawingSurfaceManipulationHandler
 {
 public:
-    Direct3DInterop(Windows::Graphics::Display::DisplayOrientations orientation);
+    Direct3DInterop();
 
 	Windows::Phone::Graphics::Interop::IDrawingSurfaceBackgroundContentProvider^ CreateContentProvider();
 
@@ -60,8 +60,6 @@ public:
     void OnCocos2dKeyEvent(Cocos2dKeyEvent key);
     void OnCocos2dKeyEvent(Cocos2dKeyEvent key, Platform::String^ text);
     void OnCocos2dEditboxEvent(Platform::Object^ sender, Platform::String^ args, Windows::Foundation::EventHandler<Platform::String^>^ handler);
-    void OnOrientationChanged(Windows::Graphics::Display::DisplayOrientations orientation);
-    void OnCocos2dOpenURL(Platform::String^ url);
 
     property Windows::Graphics::Display::DisplayOrientations WindowOrientation;
     property Windows::Foundation::Size WindowBounds;
@@ -69,7 +67,6 @@ public:
     void SetCocos2dEventDelegate(Cocos2dEventDelegate^ delegate);
     void SetCocos2dMessageBoxDelegate(Cocos2dMessageBoxDelegate ^ delegate);
     void SetCocos2dEditBoxDelegate(Cocos2dEditBoxDelegate ^ delegate);
-    void SetCocos2dOpenURLDelegate(Cocos2dOpenURLDelegate ^ delegate);
 
 
 protected:
@@ -90,10 +87,11 @@ private:
     Windows::Graphics::Display::DisplayOrientations mCurrentOrientation;
 
 
+    std::mutex mRenderingMutex;
+
     Cocos2dEventDelegate^ m_delegate;
     Cocos2dMessageBoxDelegate^ m_messageBoxDelegate;
     Cocos2dEditBoxDelegate^ m_editBoxDelegate;
-    Cocos2dOpenURLDelegate^ m_openURLDelegate;
 
 };
 

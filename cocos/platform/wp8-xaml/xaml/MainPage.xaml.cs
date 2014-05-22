@@ -24,8 +24,6 @@ using Microsoft.Phone.Shell;
 using Windows.UI.Input;
 using System.Windows.Threading;
 using Microsoft.Phone.Info;
-using Windows.Graphics.Display;
-using Microsoft.Phone.Tasks;
 
 namespace PhoneDirect3DXamlAppInterop
 {
@@ -51,43 +49,11 @@ namespace PhoneDirect3DXamlAppInterop
 #endif
         }
 
-        override protected void OnOrientationChanged(OrientationChangedEventArgs args)
-        {
-            base.OnOrientationChanged(args);
-            if (m_d3dInterop != null)
-            {
-                DisplayOrientations orientation = ConvertToNativeOrientation(args.Orientation);
-                m_d3dInterop.OnOrientationChanged(orientation);
-            }
-        }
-
-        private static DisplayOrientations ConvertToNativeOrientation(PageOrientation xamlOrientation)
-        {
-            switch (xamlOrientation)
-            {
-                case PageOrientation.Portrait:
-                case PageOrientation.PortraitUp:
-                    return DisplayOrientations.Portrait;
-                case PageOrientation.PortraitDown:
-                    return DisplayOrientations.PortraitFlipped;
-                case PageOrientation.Landscape:
-                case PageOrientation.LandscapeLeft:
-                    return DisplayOrientations.Landscape;
-                case PageOrientation.LandscapeRight:
-                    return DisplayOrientations.LandscapeFlipped;
-                default:
-                    return DisplayOrientations.Landscape;
-            }
-        }
-
         private void DrawingSurfaceBackground_Loaded(object sender, RoutedEventArgs e)
         {
             if (m_d3dInterop == null)
             {
-                PageOrientation pageOrientation = (PageOrientation)GetValue(OrientationProperty);
-                DisplayOrientations displayOrientation = ConvertToNativeOrientation(pageOrientation);
-
-                m_d3dInterop = new Direct3DInterop(displayOrientation);
+                m_d3dInterop = new Direct3DInterop();
 
                 // Set WindowBounds to size of DrawingSurface
                 m_d3dInterop.WindowBounds = new Windows.Foundation.Size(
@@ -103,7 +69,6 @@ namespace PhoneDirect3DXamlAppInterop
                 m_d3dInterop.SetCocos2dEventDelegate(OnCocos2dEvent);
                 m_d3dInterop.SetCocos2dMessageBoxDelegate(OnCocos2dMessageBoxEvent);
                 m_d3dInterop.SetCocos2dEditBoxDelegate(OpenEditBox);
-                m_d3dInterop.SetCocos2dOpenURLDelegate(OpenURL);
             }
         }
 
@@ -145,11 +110,6 @@ namespace PhoneDirect3DXamlAppInterop
             m_textBox.Text = "";
         }
 
-        public void OnTextChanged(object sender, TextChangedEventArgs e)
-        {
-            m_d3dInterop.OnCocos2dKeyEvent(Cocos2dKeyEvent.Text, m_textBox.Text);
-        }
-
         // Called by the Cocos2d-x C++ engine to display a MessageBox
         public void OnCocos2dMessageBoxEvent(String title, String text)
         {
@@ -160,7 +120,7 @@ namespace PhoneDirect3DXamlAppInterop
         }
 
         // events called by the Cocos2d-x C++ engine to be handled by C#
-        public void OnCocos2dEvent(Cocos2dEvent theEvent, String text)
+        public void OnCocos2dEvent(Cocos2dEvent theEvent)
         {
             Dispatcher.BeginInvoke(() =>
             {
@@ -177,13 +137,11 @@ namespace PhoneDirect3DXamlAppInterop
                             m_textBox.Opacity = 0.0;
                             m_textBox.Width = 1;
                             m_textBox.Height = 1;
+                            m_textBox.MaxLength = 1;
                             m_textBox.KeyDown += OnKeyDown;
-                            m_textBox.TextChanged += OnTextChanged;
+                            m_textBox.KeyUp += OnKeyUp;
                             DrawingSurfaceBackground.Children.Add(m_textBox);
                         }
-                        m_textBox.Text = text;
-                        m_textBox.SelectionLength = 0;
-                        m_textBox.SelectionStart = int.MaxValue;
                         m_textBox.Focus();
                         break;
 
@@ -215,13 +173,6 @@ namespace PhoneDirect3DXamlAppInterop
             {
                 m_d3dInterop.OnCocos2dEditboxEvent(sender, str, m_receiveHandler);
             }
-        }
-
-        public void OpenURL(String url)
-        {
-            WebBrowserTask webBrowserTask = new WebBrowserTask();
-            webBrowserTask.Uri = new Uri(url, UriKind.Absolute);
-            webBrowserTask.Show();
         }
 
         private void StartTimer()

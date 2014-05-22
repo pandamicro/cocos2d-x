@@ -62,6 +62,7 @@ static std::function<Layer*()> createFunctions[] =
     CL(LabelTTFAlignmentNew),
     CL(LabelFNTBounds),
     CL(LabelTTFLongLineWrapping),
+    CL(LabelTTFLargeText),
     CL(LabelTTFColor),
     CL(LabelTTFFontsTestNew),
     CL(LabelTTFDynamicAlignment),
@@ -77,11 +78,7 @@ static std::function<Layer*()> createFunctions[] =
     CL(LabelTTFOldNew),
     CL(LabelFontNameTest),
     CL(LabelAlignmentTest),
-    CL(LabelIssue4428Test),
-    CL(LabelIssue4999Test),
-    CL(LabelLineHeightTest),
-    CL(LabelAdditionalKerningTest),
-    CL(LabelIssue8492Test)
+    CL(LabelIssue4428Test)
 };
 
 #define MAX_LAYER    (sizeof(createFunctions) / sizeof(createFunctions[0]))
@@ -146,7 +143,7 @@ void AtlasDemoNew::onEnter()
 
 void AtlasDemoNew::restartCallback(Ref* sender)
 {
-    auto s = new (std::nothrow) AtlasTestSceneNew();
+    auto s = new AtlasTestSceneNew();
     s->addChild(restartAtlasActionNew()); 
 
     Director::getInstance()->replaceScene(s);
@@ -155,7 +152,7 @@ void AtlasDemoNew::restartCallback(Ref* sender)
 
 void AtlasDemoNew::nextCallback(Ref* sender)
 {
-    auto s = new (std::nothrow) AtlasTestSceneNew();
+    auto s = new AtlasTestSceneNew();
     s->addChild( nextAtlasActionNew() );
     Director::getInstance()->replaceScene(s);
     s->release();
@@ -163,7 +160,7 @@ void AtlasDemoNew::nextCallback(Ref* sender)
 
 void AtlasDemoNew::backCallback(Ref* sender)
 {
-    auto s = new (std::nothrow) AtlasTestSceneNew();
+    auto s = new AtlasTestSceneNew();
     s->addChild( backAtlasActionNew() );
     Director::getInstance()->replaceScene(s);
     s->release();
@@ -211,7 +208,7 @@ LabelFNTColorAndOpacity::LabelFNTColorAndOpacity()
     addChild(label1, 0, kTagBitmapAtlas1);
     auto fade = FadeOut::create(1.0f);
     auto fade_in = fade->reverse();
-    auto seq = Sequence::create(fade, fade_in, nullptr);
+    auto seq = Sequence::create(fade, fade_in, NULL);
     auto repeat = RepeatForever::create(seq);
     label1->runAction(repeat);
     
@@ -221,7 +218,7 @@ LabelFNTColorAndOpacity::LabelFNTColorAndOpacity()
     auto tint = Sequence::create(TintTo::create(1, 255, 0, 0),
         TintTo::create(1, 0, 255, 0),
         TintTo::create(1, 0, 0, 255),
-        nullptr);
+        NULL);
     label2->runAction( RepeatForever::create(tint) );
     
     auto label3 = Label::createWithBMFont("fonts/bitmapFontTest2.fnt", "Test");
@@ -232,7 +229,7 @@ LabelFNTColorAndOpacity::LabelFNTColorAndOpacity()
     label2->setPosition( VisibleRect::center() );
     label3->setPosition( VisibleRect::rightTop() );
     
-    schedule(CC_CALLBACK_1(LabelFNTColorAndOpacity::step, this), "step_key");
+    schedule( schedule_selector(LabelFNTColorAndOpacity::step) );//:@selector(step:)];
 }
 
 void LabelFNTColorAndOpacity::step(float dt)
@@ -264,18 +261,12 @@ std::string LabelFNTColorAndOpacity::subtitle() const
 LabelFNTSpriteActions::LabelFNTSpriteActions()
 {
     _time = 0;
-    
-    auto s = Director::getInstance()->getWinSize();
-    
-    auto drawNode = DrawNode::create();
-    drawNode->drawLine( Vec2(0, s.height/2), Vec2(s.width, s.height/2), Color4F(1.0, 1.0, 1.0, 1.0) );
-    drawNode->drawLine( Vec2(s.width/2, 0), Vec2(s.width/2, s.height), Color4F(1.0, 1.0, 1.0, 1.0) );
-    addChild(drawNode, -1);
 
     // Upper Label
     auto label = Label::createWithBMFont("fonts/bitmapFontTest.fnt", "Bitmap Font Atlas");
     addChild(label);
     
+    auto s = Director::getInstance()->getWinSize();
     
     label->setPosition( Vec2(s.width/2, s.height/2) ); 
     
@@ -289,7 +280,7 @@ LabelFNTSpriteActions::LabelFNTSpriteActions()
     
     auto scale = ScaleBy::create(2, 1.5f);
     auto scale_back = scale->reverse();
-    auto scale_seq = Sequence::create(scale, scale_back,nullptr);
+    auto scale_seq = Sequence::create(scale, scale_back,NULL);
     auto scale_4ever = RepeatForever::create(scale_seq);
     
     auto jump = JumpBy::create(0.5f, Vec2::ZERO, 60, 1);
@@ -297,7 +288,7 @@ LabelFNTSpriteActions::LabelFNTSpriteActions()
     
     auto fade_out = FadeOut::create(1);
     auto fade_in = FadeIn::create(1);
-    auto seq = Sequence::create(fade_out, fade_in, nullptr);
+    auto seq = Sequence::create(fade_out, fade_in, NULL);
     auto fade_4ever = RepeatForever::create(seq);
     
     BChar->runAction(rot_4ever);
@@ -314,7 +305,29 @@ LabelFNTSpriteActions::LabelFNTSpriteActions()
     auto lastChar = (Sprite*) label2->getLetter(3);
     lastChar->runAction( rot_4ever->clone() );
     
-    schedule(CC_CALLBACK_1(LabelFNTSpriteActions::step, this), 0.1f, "step_key");
+    schedule( schedule_selector(LabelFNTSpriteActions::step), 0.1f);
+}
+
+void LabelFNTSpriteActions::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
+{
+    _renderCmd.init(_globalZOrder);
+    _renderCmd.func = CC_CALLBACK_0(LabelFNTSpriteActions::onDraw, this, transform, transformUpdated);
+    renderer->addCommand(&_renderCmd);
+
+}
+
+void LabelFNTSpriteActions::onDraw(const Mat4 &transform, bool transformUpdated)
+{
+    Director* director = Director::getInstance();
+    CCASSERT(nullptr != director, "Director is null when seting matrix stack");
+    director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, transform);
+    
+    auto s = Director::getInstance()->getWinSize();
+    DrawPrimitives::drawLine( Vec2(0, s.height/2), Vec2(s.width, s.height/2) );
+    DrawPrimitives::drawLine( Vec2(s.width/2, 0), Vec2(s.width/2, s.height) );
+    
+    director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 }
 
 void LabelFNTSpriteActions::step(float dt)
@@ -505,7 +518,7 @@ LabelFNTandTTFEmpty::LabelFNTandTTFEmpty()
     addChild(label3, 0, kTagBitmapAtlas3);
     label3->setPosition(Vec2(s.width/2, 100));
 
-    schedule(CC_CALLBACK_1(LabelFNTandTTFEmpty::updateStrings, this), 1.0f, "update_strings_key");
+    schedule(schedule_selector(LabelFNTandTTFEmpty::updateStrings), 1.0f);
 
     setEmpty = false;
 }
@@ -592,7 +605,7 @@ LabelTTFUnicodeChinese::LabelTTFUnicodeChinese()
     auto size = Director::getInstance()->getWinSize();
     // Adding "啊" letter at the end of string to make VS2012 happy, otherwise VS will generate errors  
     // like "Error 3 error C2146: syntax error : missing ')' before identifier 'label'"; 
-    TTFConfig ttfConfig("fonts/HKYuanMini.ttf",28,GlyphCollection::CUSTOM, "美好的一天啊");
+    TTFConfig ttfConfig("fonts/wt021.ttf",28,GlyphCollection::CUSTOM, "美好的一天啊");
     auto label = Label::createWithTTF(ttfConfig,"美好的一天啊", TextHAlignment::CENTER, size.width);
 
     if(label) {
@@ -674,7 +687,7 @@ LabelFNTMultiLineAlignment::LabelFNTMultiLineAlignment()
     auto longSentences = MenuItemFont::create("Long Flowing Sentences", CC_CALLBACK_1(LabelFNTMultiLineAlignment::stringChanged, this));
     auto lineBreaks    = MenuItemFont::create("Short Sentences With Intentional Line Breaks", CC_CALLBACK_1(LabelFNTMultiLineAlignment::stringChanged, this));
     auto mixed         = MenuItemFont::create("Long Sentences Mixed With Intentional Line Breaks", CC_CALLBACK_1(LabelFNTMultiLineAlignment::stringChanged, this));
-    auto stringMenu    = Menu::create(longSentences, lineBreaks, mixed, nullptr);
+    auto stringMenu    = Menu::create(longSentences, lineBreaks, mixed, NULL);
     stringMenu->alignItemsVertically();
 
     longSentences->setColor(Color3B::RED);
@@ -688,7 +701,7 @@ LabelFNTMultiLineAlignment::LabelFNTMultiLineAlignment()
     auto left = MenuItemFont::create("Left", CC_CALLBACK_1(LabelFNTMultiLineAlignment::alignmentChanged, this));
     auto center = MenuItemFont::create("Center", CC_CALLBACK_1(LabelFNTMultiLineAlignment::alignmentChanged, this));
     auto right = MenuItemFont::create("Right", CC_CALLBACK_1(LabelFNTMultiLineAlignment::alignmentChanged, this));
-    auto alignmentMenu = Menu::create(left, center, right, nullptr);
+    auto alignmentMenu = Menu::create(left, center, right, NULL);
     alignmentMenu->alignItemsHorizontallyWithPadding(alignmentItemPadding);
 
     center->setColor(Color3B::RED);
@@ -879,11 +892,35 @@ LabelFNTBounds::LabelFNTBounds()
     addChild(layer, -10);
     
     // LabelBMFont
-    auto label1 = Label::createWithBMFont("fonts/boundsTestFont.fnt", "Testing Glyph Designer", TextHAlignment::CENTER,s.width);
+    label1 = Label::createWithBMFont("fonts/boundsTestFont.fnt", "Testing Glyph Designer", TextHAlignment::CENTER,s.width);
     addChild(label1);
     label1->setPosition(Vec2(s.width/2, s.height/2));
+}
 
-    auto drawNode = DrawNode::create();
+std::string LabelFNTBounds::title() const
+{
+    return "New Label + .FNT + Bounds";
+}
+
+std::string LabelFNTBounds::subtitle() const
+{
+    return "You should see string enclosed by a box";
+}
+
+void LabelFNTBounds::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
+{
+    _renderCmd.init(_globalZOrder);
+    _renderCmd.func = CC_CALLBACK_0(LabelFNTBounds::onDraw, this, transform, transformUpdated);
+    renderer->addCommand(&_renderCmd);
+}
+
+void LabelFNTBounds::onDraw(const Mat4 &transform, bool transformUpdated)
+{
+    Director* director = Director::getInstance();
+    CCASSERT(nullptr != director, "Director is null when seting matrix stack");
+    director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, transform);
+    
     auto labelSize = label1->getContentSize();
     auto origin    = Director::getInstance()->getWinSize();
     
@@ -897,18 +934,9 @@ LabelFNTBounds::LabelFNTBounds()
         Vec2(labelSize.width + origin.width, labelSize.height + origin.height),
         Vec2(origin.width, labelSize.height + origin.height)
     };
-    drawNode->drawPoly(vertices, 4, true, Color4F(1.0, 1.0, 1.0, 1.0));
-    addChild(drawNode);
-}
-
-std::string LabelFNTBounds::title() const
-{
-    return "New Label + .FNT + Bounds";
-}
-
-std::string LabelFNTBounds::subtitle() const
-{
-    return "You should see string enclosed by a box";
+    DrawPrimitives::drawPoly(vertices, 4, true);
+    
+    director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 }
 
 LabelTTFLongLineWrapping::LabelTTFLongLineWrapping()
@@ -931,6 +959,30 @@ std::string LabelTTFLongLineWrapping::title() const
 std::string LabelTTFLongLineWrapping::subtitle() const
 {
     return "Uses the new Label with TTF. Testing auto-wrapping";
+}
+
+LabelTTFLargeText::LabelTTFLargeText()
+{
+    auto size = Director::getInstance()->getWinSize();
+
+    // Long sentence
+    TTFConfig ttfConfig("fonts/wt021.ttf",18,GlyphCollection::DYNAMIC);
+    std::string text = FileUtils::getInstance()->getStringFromFile("commonly_used_words.txt");
+    auto label = Label::createWithTTF(ttfConfig,text, TextHAlignment::CENTER, size.width);
+    if(label) {
+        label->setPosition( Vec2(size.width/2, size.height/2) );
+        addChild(label);
+    }
+}
+
+std::string LabelTTFLargeText::title() const
+{
+    return "New Label + .TTF";
+}
+
+std::string LabelTTFLargeText::subtitle() const
+{
+    return "Uses the new Label with TTF. Testing large text";
 }
 
 LabelTTFColor::LabelTTFColor()
@@ -978,7 +1030,7 @@ LabelTTFDynamicAlignment::LabelTTFDynamicAlignment()
                               MenuItemFont::create("Left", CC_CALLBACK_1(LabelTTFDynamicAlignment::setAlignmentLeft, this)),
                               MenuItemFont::create("Center", CC_CALLBACK_1(LabelTTFDynamicAlignment::setAlignmentCenter, this)),
                               MenuItemFont::create("Right", CC_CALLBACK_1(LabelTTFDynamicAlignment::setAlignmentRight, this)),
-                              nullptr);
+                              NULL);
     
     menu->alignItemsVerticallyWithPadding(4);
     menu->setPosition(Vec2(50, size.height / 4 ));
@@ -1040,7 +1092,7 @@ LabelTTFCJKWrappingTest::LabelTTFCJKWrappingTest()
         Vec2(size.width * 0.85, size.height * 0.8),
         Vec2(size.width * 0.85, 0), 1, Color4F(1, 0, 0, 1));
     
-    TTFConfig ttfConfig("fonts/HKYuanMini.ttf", 25, GlyphCollection::DYNAMIC);
+    TTFConfig ttfConfig("fonts/wt021.ttf", 25, GlyphCollection::DYNAMIC);
     auto label1 = Label::createWithTTF(ttfConfig,
         "你好，Cocos2d-x v3的New Label.", TextHAlignment::LEFT, size.width * 0.75);
     if(label1) {
@@ -1109,7 +1161,7 @@ LabelTTFUnicodeNew::LabelTTFUnicodeNew()
     addChild(label2);
     
     // chinese
-    ttfConfig.fontFilePath = "fonts/HKYuanMini.ttf";
+    ttfConfig.fontFilePath = "fonts/wt021.ttf";
     ttfConfig.glyphs = GlyphCollection::CUSTOM;
     ttfConfig.customGlyphs = chinese.c_str();
     auto label3 = Label::createWithTTF(ttfConfig,chinese, TextHAlignment::CENTER,size.width);
@@ -1137,7 +1189,7 @@ LabelTTFFontsTestNew::LabelTTFFontsTestNew()
         "fonts/Abduction.ttf",
         "fonts/American Typewriter.ttf",
         "fonts/Paint Boy.ttf",
-        "fonts/Schwarzwald.ttf",
+        "fonts/Schwarzwald Regular.ttf",
         "fonts/Scissor Cuts.ttf",
     };
 #define arraysize(ar)  (sizeof(ar) / sizeof(ar[0]))
@@ -1299,7 +1351,7 @@ LabelShadowTest::LabelShadowTest()
     slider->loadBarTexture("cocosui/sliderTrack.png");
     slider->loadSlidBallTextures("cocosui/sliderThumb.png", "cocosui/sliderThumb.png", "");
     slider->loadProgressBarTexture("cocosui/sliderProgress.png");
-    slider->setPosition(Vec2(size.width / 2.0f, size.height * 0.15f + slider->getContentSize().height * 2.0f));
+    slider->setPosition(Vec2(size.width / 2.0f, size.height * 0.15f + slider->getSize().height * 2.0f));
     slider->setPercent(52);
     slider->addEventListener(CC_CALLBACK_2(LabelShadowTest::sliderEvent, this));
     addChild(slider);
@@ -1357,7 +1409,7 @@ LabelCharMapTest::LabelCharMapTest()
     label2->setPosition( Vec2(10,200) );
     label2->setOpacity( 32 );
 
-    schedule(CC_CALLBACK_1(LabelCharMapTest::step, this), "step_key");
+    schedule(schedule_selector(LabelCharMapTest::step)); 
 }
 
 void LabelCharMapTest::step(float dt)
@@ -1406,13 +1458,13 @@ LabelCharMapColorTest::LabelCharMapColorTest()
     auto fade = FadeOut::create(1.0f);
     auto fade_in = fade->reverse();
     auto cb = CallFunc::create(CC_CALLBACK_0(LabelCharMapColorTest::actionFinishCallback, this));
-    auto seq = Sequence::create(fade, fade_in, cb, nullptr);
+    auto seq = Sequence::create(fade, fade_in, cb, NULL);
     auto repeat = RepeatForever::create( seq );
     label2->runAction( repeat );    
 
     _time = 0;
 
-    schedule(CC_CALLBACK_1(LabelCharMapColorTest::step, this), "step_key");
+    schedule( schedule_selector(LabelCharMapColorTest::step) ); //:@selector(step:)];
 }
 
 void LabelCharMapColorTest::actionFinishCallback()
@@ -1478,8 +1530,16 @@ LabelTTFOldNew::LabelTTFOldNew()
     auto label2 = Label::createWithTTF(ttfConfig, "Cocos2d-x Label Test");
     addChild(label2, 0, kTagBitmapAtlas2);
     label2->setPosition(Vec2(s.width/2, delta * 2));
+}
 
-    auto drawNode = DrawNode::create();
+void LabelTTFOldNew::onDraw(const Mat4 &transform, bool transformUpdated)
+{
+    Director* director = Director::getInstance();
+    CCASSERT(nullptr != director, "Director is null when seting matrix stack");
+    director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, transform);
+
+    auto label1 = (Label*)getChildByTag(kTagBitmapAtlas1);
     auto labelSize = label1->getContentSize();
     auto origin    = Director::getInstance()->getWinSize();
     
@@ -1493,14 +1553,16 @@ LabelTTFOldNew::LabelTTFOldNew()
         Vec2(labelSize.width + origin.width, labelSize.height + origin.height),
         Vec2(origin.width, labelSize.height + origin.height)
     };
-    drawNode->drawPoly(vertices, 4, true, Color4F(1.0, 0.0, 0.0, 1.0));
-    
+    DrawPrimitives::setDrawColor4B(Color4B::RED.r,Color4B::RED.g,Color4B::RED.b,Color4B::RED.a);
+    DrawPrimitives::drawPoly(vertices, 4, true);
+
+    auto label2 = (Label*)getChildByTag(kTagBitmapAtlas2);
     labelSize = label2->getContentSize();
     origin    = Director::getInstance()->getWinSize();
-    
+
     origin.width = origin.width   / 2 - (labelSize.width / 2);
     origin.height = origin.height / 2 - (labelSize.height / 2);
-    
+
     Vec2 vertices2[4]=
     {
         Vec2(origin.width, origin.height),
@@ -1508,9 +1570,17 @@ LabelTTFOldNew::LabelTTFOldNew()
         Vec2(labelSize.width + origin.width, labelSize.height + origin.height),
         Vec2(origin.width, labelSize.height + origin.height)
     };
-    drawNode->drawPoly(vertices2, 4, true, Color4F(1.0, 1.0, 1.0, 1.0));
+    DrawPrimitives::setDrawColor4B(Color4B::WHITE.r,Color4B::WHITE.g,Color4B::WHITE.b,Color4B::WHITE.a);
+    DrawPrimitives::drawPoly(vertices2, 4, true);
     
-    addChild(drawNode);
+    director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+}
+
+void LabelTTFOldNew::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
+{
+    _renderCmd.init(_globalZOrder);
+    _renderCmd.func = CC_CALLBACK_0(LabelTTFOldNew::onDraw, this, transform, transformUpdated);
+    renderer->addCommand(&_renderCmd);
 }
 
 std::string LabelTTFOldNew::title() const
@@ -1564,7 +1634,7 @@ LabelAlignmentTest::LabelAlignmentTest()
         MenuItemFont::create("Left", CC_CALLBACK_1(LabelAlignmentTest::setAlignmentLeft, this)),
         MenuItemFont::create("Center", CC_CALLBACK_1(LabelAlignmentTest::setAlignmentCenter, this)),
         MenuItemFont::create("Right", CC_CALLBACK_1(LabelAlignmentTest::setAlignmentRight, this)),
-        nullptr);
+        NULL);
     menu->alignItemsVerticallyWithPadding(4);
     menu->setPosition(Vec2(50, s.height / 2 - 20));
     this->addChild(menu);
@@ -1573,7 +1643,7 @@ LabelAlignmentTest::LabelAlignmentTest()
         MenuItemFont::create("Top", CC_CALLBACK_1(LabelAlignmentTest::setAlignmentTop, this)),
         MenuItemFont::create("Middle", CC_CALLBACK_1(LabelAlignmentTest::setAlignmentMiddle, this)),
         MenuItemFont::create("Bottom", CC_CALLBACK_1(LabelAlignmentTest::setAlignmentBottom, this)),
-        nullptr);
+        NULL);
     menu->alignItemsVerticallyWithPadding(4);
     menu->setPosition(Vec2(s.width - 50, s.height / 2 - 20));
     this->addChild(menu);
@@ -1642,8 +1712,8 @@ void LabelAlignmentTest::setAlignmentBottom(Ref* sender)
 
 const char* LabelAlignmentTest::getCurrentAlignment()
 {
-    const char* vertical = nullptr;
-    const char* horizontal = nullptr;
+    const char* vertical = NULL;
+    const char* horizontal = NULL;
     switch (_vertAlign) {
     case TextVAlignment::TOP:
         vertical = "Top";
@@ -1708,128 +1778,4 @@ std::string LabelIssue4428Test::title() const
 std::string LabelIssue4428Test::subtitle() const
 {
     return "Reorder issue #4428.The label should be flipped vertically.";
-}
-
-LabelIssue4999Test::LabelIssue4999Test()
-{
-    auto label = Label::createWithTTF("Smaller font test", "fonts/arial.ttf",5);
-    label->setPosition(VisibleRect::center());
-    label->setAnchorPoint(Vec2::ANCHOR_MIDDLE);
-    addChild(label);
-}
-
-std::string LabelIssue4999Test::title() const
-{
-    return "New Label Bugs Test";
-}
-
-std::string LabelIssue4999Test::subtitle() const
-{
-    return "Reorder issue #4999.The label should be display cleanly.";
-}
-
-LabelLineHeightTest::LabelLineHeightTest()
-{
-    auto size = Director::getInstance()->getWinSize();
-
-    auto bg = LayerColor::create(Color4B(200,191,231,255));
-    this->addChild(bg);
-
-    TTFConfig ttfConfig("fonts/arial.ttf", 25, GlyphCollection::DYNAMIC,nullptr,false);
-
-    label = Label::createWithTTF(ttfConfig,"Test\nLine\nHeight");
-    label->setPosition( Vec2(size.width/2, size.height*0.5f) );
-    label->setTextColor( Color4B::RED );
-    addChild(label);
-
-    auto slider = ui::Slider::create();
-    slider->setTouchEnabled(true);
-    slider->loadBarTexture("cocosui/sliderTrack.png");
-    slider->loadSlidBallTextures("cocosui/sliderThumb.png", "cocosui/sliderThumb.png", "");
-    slider->loadProgressBarTexture("cocosui/sliderProgress.png");
-    slider->setPosition(Vec2(size.width / 2.0f, size.height * 0.15f + slider->getContentSize().height * 2.0f));
-    slider->setPercent(label->getLineHeight());
-    slider->addEventListener(CC_CALLBACK_2(LabelLineHeightTest::sliderEvent, this));
-    addChild(slider);
-}
-
-void LabelLineHeightTest::sliderEvent(Ref *sender, ui::Slider::EventType type)
-{
-    if (type == Slider::EventType::ON_PERCENTAGE_CHANGED)
-    {
-        Slider*  slider = (Slider*)sender;
-        label->setLineHeight(slider->getPercent());
-    }
-}
-
-std::string LabelLineHeightTest::title() const
-{
-    return "New Label";
-}
-
-std::string LabelLineHeightTest::subtitle() const
-{
-    return "Testing line height of label";
-}
-
-LabelAdditionalKerningTest::LabelAdditionalKerningTest()
-{
-    auto size = Director::getInstance()->getWinSize();
-
-    auto bg = LayerColor::create(Color4B(200,191,231,255));
-    this->addChild(bg);
-
-    TTFConfig ttfConfig("fonts/arial.ttf", 40, GlyphCollection::DYNAMIC,nullptr,false);
-
-    label = Label::createWithTTF(ttfConfig,"Test additional kerning");
-    label->setPosition( Vec2(size.width/2, size.height*0.65f) );
-    label->setTextColor( Color4B::RED );
-    addChild(label);
-
-    auto slider = ui::Slider::create();
-    slider->setTouchEnabled(true);
-    slider->loadBarTexture("cocosui/sliderTrack.png");
-    slider->loadSlidBallTextures("cocosui/sliderThumb.png", "cocosui/sliderThumb.png", "");
-    slider->loadProgressBarTexture("cocosui/sliderProgress.png");
-    slider->setPosition(Vec2(size.width / 2.0f, size.height * 0.15f + slider->getContentSize().height * 2.0f));
-    slider->setPercent(0);
-    slider->addEventListener(CC_CALLBACK_2(LabelAdditionalKerningTest::sliderEvent, this));
-    addChild(slider);
-}
-
-void LabelAdditionalKerningTest::sliderEvent(Ref *sender, ui::Slider::EventType type)
-{
-    if (type == Slider::EventType::ON_PERCENTAGE_CHANGED)
-    {
-        Slider*  slider = (Slider*)sender;
-        label->setAdditionalKerning(slider->getPercent());
-    }
-}
-
-std::string LabelAdditionalKerningTest::title() const
-{
-    return "New Label";
-}
-
-std::string LabelAdditionalKerningTest::subtitle() const
-{
-    return "Testing additional kerning of label";
-}
-
-LabelIssue8492Test::LabelIssue8492Test()
-{
-    auto label = Label::createWithBMFont("fonts/bitmapFontChinese.fnt", "中国中国中国中国中国");
-    label->setDimensions(5,100);
-    label->setPosition(VisibleRect::center());
-    addChild(label);
-}
-
-std::string LabelIssue8492Test::title() const
-{
-    return "Reorder issue #8492";
-}
-
-std::string LabelIssue8492Test::subtitle() const
-{
-    return "Work fine when dimensions are not enough to fit one character";
 }

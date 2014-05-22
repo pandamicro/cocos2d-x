@@ -24,15 +24,12 @@
 
 #include "UIVideoPlayer.h"
 
-#if CC_TARGET_PLATFORM == CC_PLATFORM_IOS
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID || CC_TARGET_PLATFORM == CC_PLATFORM_IOS)
 
 using namespace cocos2d::experimental::ui;
 //-------------------------------------------------------------------------------------
-
-#include "platform/ios/CCEAGLView-ios.h"
+#include "CCEAGLView.h"
 #import <MediaPlayer/MediaPlayer.h>
-#include "base/CCDirector.h"
-#include "platform/CCFileUtils.h"
 
 @interface UIVideoViewWrapperIos : NSObject
 
@@ -134,11 +131,11 @@ using namespace cocos2d::experimental::ui;
     }
     
     if (videoSource == 1) {
-        self.moviePlayer = [[[MPMoviePlayerController alloc] initWithContentURL:[NSURL URLWithString:@(videoUrl.c_str())]] autorelease];
+        self.moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:[NSURL URLWithString:@(videoUrl.c_str())]];
         self.moviePlayer.movieSourceType = MPMovieSourceTypeStreaming;
     } else {
         NSString *path = [UIVideoViewWrapperIos fullPathFromRelativePath:@(videoUrl.c_str())];
-        self.moviePlayer = [[[MPMoviePlayerController alloc] initWithContentURL:[NSURL fileURLWithPath:path]] autorelease];
+        self.moviePlayer = [[MPMoviePlayerController alloc] initWithContentURL:[NSURL fileURLWithPath:path]];
         self.moviePlayer.movieSourceType = MPMovieSourceTypeFile;
     }
     self.moviePlayer.allowsAirPlay = false;
@@ -172,7 +169,7 @@ using namespace cocos2d::experimental::ui;
     {
         if([self.moviePlayer playbackState] != MPMoviePlaybackStateStopped)
         {
-            _videoPlayer->onPlayEvent((int)VideoPlayer::EventType::COMPLETED);
+            _videoPlayer->onPlayEvent(VideoPlayer::EventType::COMPLETED);
         }
     }
 }
@@ -182,13 +179,13 @@ using namespace cocos2d::experimental::ui;
     MPMoviePlaybackState state = [self.moviePlayer playbackState];
     switch (state) {
         case MPMoviePlaybackStatePaused:
-            _videoPlayer->onPlayEvent((int)VideoPlayer::EventType::PAUSED);
+            _videoPlayer->onPlayEvent(VideoPlayer::EventType::PAUSED);
             break;
         case MPMoviePlaybackStateStopped:
-            _videoPlayer->onPlayEvent((int)VideoPlayer::EventType::STOPPED);
+            _videoPlayer->onPlayEvent(VideoPlayer::EventType::STOPPED);
             break;
         case MPMoviePlaybackStatePlaying:
-            _videoPlayer->onPlayEvent((int)VideoPlayer::EventType::PLAYING);
+            _videoPlayer->onPlayEvent(VideoPlayer::EventType::PLAYING);
             break;
         case MPMoviePlaybackStateInterrupted:
             break;
@@ -211,7 +208,7 @@ using namespace cocos2d::experimental::ui;
 -(void) setVisible:(bool)visible
 {
     if (self.moviePlayer != NULL) {
-        [self.moviePlayer.view setHidden:!visible];
+        [self.moviePlayer.view setHidden:visible];
     }
 }
 
@@ -261,7 +258,23 @@ using namespace cocos2d::experimental::ui;
 
 +(NSString*) fullPathFromRelativePath:(NSString*) relPath
 {
-    return [NSString stringWithCString: cocos2d::FileUtils::getInstance()->fullPathForFilename(std::string([relPath UTF8String])).c_str() encoding: [NSString defaultCStringEncoding]];
+    // do not convert an absolute path (starting with '/')
+    if(([relPath length] > 0) && ([relPath characterAtIndex:0] == '/'))
+    {
+        return relPath;
+    }
+    
+    NSMutableArray *imagePathComponents = [NSMutableArray arrayWithArray:[relPath pathComponents]];
+    NSString *file = [imagePathComponents lastObject];
+    
+    [imagePathComponents removeLastObject];
+    NSString *imageDirectory = [NSString pathWithComponents:imagePathComponents];
+    
+    NSString *fullpath = [[NSBundle mainBundle] pathForResource:file ofType:nil inDirectory:imageDirectory];
+    if (fullpath == nil)
+        fullpath = relPath;
+    
+    return fullpath;
 }
 @end
 //------------------------------------------------------------------------------------------------------------
@@ -275,11 +288,6 @@ VideoPlayer::VideoPlayer()
 , _isPlaying(false)
 {
     _videoView = [[UIVideoViewWrapperIos alloc] init:this];
-
-#if CC_VIDEOPLAYER_DEBUG_DRAW
-    _debugDrawNode = DrawNode::create();
-    addChild(_debugDrawNode);
-#endif
 }
 
 VideoPlayer::~VideoPlayer()
@@ -304,16 +312,16 @@ void VideoPlayer::setURL(const std::string& videoUrl)
     [((UIVideoViewWrapperIos*)_videoView) setURL:(int)_videoSource :_videoURL];
 }
 
-void VideoPlayer::draw(Renderer* renderer, const Mat4 &transform, uint32_t flags)
+void VideoPlayer::draw(Renderer* renderer, const Mat4 &transform, bool transformUpdated)
 {
-    cocos2d::ui::Widget::draw(renderer,transform,flags);
+    cocos2d::ui::Widget::draw(renderer,transform,transformUpdated);
     
-    if (flags & FLAGS_TRANSFORM_DIRTY)
+    if (transformUpdated)
     {
         auto directorInstance = Director::getInstance();
         auto glView = directorInstance->getOpenGLView();
         auto frameSize = glView->getFrameSize();
-        auto scaleFactor = [static_cast<CCEAGLView *>(glView->getEAGLView()) contentScaleFactor];
+        auto scaleFactor = directorInstance->getContentScaleFactor();
         
         auto winSize = directorInstance->getWinSize();
         
@@ -329,20 +337,13 @@ void VideoPlayer::draw(Renderer* renderer, const Mat4 &transform, uint32_t flags
     }
     
 #if CC_VIDEOPLAYER_DEBUG_DRAW
-    _debugDrawNode->clear();
-    auto size = getContentSize();
-    Point vertices[4]=
-    {
-        Point::ZERO,
-        Point(size.width, 0),
-        Point(size.width, size.height),
-        Point(0, size.height)
-    };
-    _debugDrawNode->drawPoly(vertices, 4, true, Color4F(1.0, 1.0, 1.0, 1.0));
+    _customDebugDrawCommand.init(_globalZOrder);
+    _customDebugDrawCommand.func = CC_CALLBACK_0(VideoPlayer::drawDebugData, this);
+    renderer->addCommand(&_customDebugDrawCommand);
 #endif
 }
 
-bool VideoPlayer::isFullScreenEnabled()const
+bool VideoPlayer::isFullScreenEnabled()
 {
     return [((UIVideoViewWrapperIos*)_videoView) isFullScreenEnabled];
 }
@@ -360,6 +361,31 @@ void VideoPlayer::setKeepAspectRatioEnabled(bool enable)
         [((UIVideoViewWrapperIos*)_videoView) setKeepRatioEnabled:enable];
     }
 }
+
+#if CC_VIDEOPLAYER_DEBUG_DRAW
+void VideoPlayer::drawDebugData()
+{
+    Director* director = Director::getInstance();
+    CCASSERT(nullptr != director, "Director is null when seting matrix stack");
+
+    director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+    director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, _modelViewTransform);
+    
+    auto size = getContentSize();
+    
+    Point vertices[4]=
+    {
+        Point::ZERO,
+        Point(size.width, 0),
+        Point(size.width, size.height),
+        Point(0, size.height)
+    };
+    
+    DrawPrimitives::drawPoly(vertices, 4, true);
+    
+    director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
+}
+#endif
 
 void VideoPlayer::play()
 {
@@ -421,9 +447,9 @@ void VideoPlayer::addEventListener(const VideoPlayer::ccVideoPlayerCallback& cal
     _eventCallback = callback;
 }
 
-void VideoPlayer::onPlayEvent(int event)
+void VideoPlayer::onPlayEvent(VideoPlayer::EventType event)
 {
-    if (event == (int)VideoPlayer::EventType::PLAYING) {
+    if (event == VideoPlayer::EventType::PLAYING) {
         _isPlaying = true;
     } else {
         _isPlaying = false;
@@ -431,29 +457,7 @@ void VideoPlayer::onPlayEvent(int event)
     
     if (_eventCallback)
     {
-        _eventCallback(this, (VideoPlayer::EventType)event);
-    }
-}
-
-cocos2d::ui::Widget* VideoPlayer::createCloneInstance()
-{
-    return VideoPlayer::create();
-}
-
-void VideoPlayer::copySpecialProperties(Widget *widget)
-{
-    VideoPlayer* videoPlayer = dynamic_cast<VideoPlayer*>(widget);
-    if (videoPlayer)
-    {
-        _isPlaying = videoPlayer->_isPlaying;
-        _fullScreenEnabled = videoPlayer->_fullScreenEnabled;
-        _fullScreenDirty = videoPlayer->_fullScreenDirty;
-        _videoURL = videoPlayer->_videoURL;
-        _keepAspectRatioEnabled = videoPlayer->_keepAspectRatioEnabled;
-        _videoSource = videoPlayer->_videoSource;
-        _videoPlayerIndex = videoPlayer->_videoPlayerIndex;
-        _eventCallback = videoPlayer->_eventCallback;
-        _videoView = videoPlayer->_videoView;
+        _eventCallback(this,event);
     }
 }
 

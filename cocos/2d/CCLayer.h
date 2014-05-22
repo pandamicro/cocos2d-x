@@ -30,8 +30,15 @@ THE SOFTWARE.
 
 #include "2d/CCNode.h"
 #include "base/CCProtocols.h"
+#include "base/CCEventTouch.h"
+#ifdef EMSCRIPTEN
+#include "CCGLBufferedNode.h"
+#endif // EMSCRIPTEN
+
+#include "base/CCEventKeyboard.h"
 #include "renderer/CCCustomCommand.h"
 
+#include "physics/CCPhysicsWorld.h"
 
 NS_CC_BEGIN
 
@@ -46,8 +53,6 @@ class TouchScriptHandlerEntry;
 class EventListenerTouch;
 class EventListenerKeyboard;
 class EventListenerAcceleration;
-
-class Touch;
 
 //
 // Layer
@@ -168,9 +173,9 @@ CC_CONSTRUCTOR_ACCESS:
 
 protected:
     //add the api for avoid use deprecated api
-    CC_DEPRECATED_ATTRIBUTE void _addTouchListener() {}
+    void _addTouchListener();
 
-    CC_DEPRECATED_ATTRIBUTE void addTouchListener() {}
+    CC_DEPRECATED_ATTRIBUTE void addTouchListener() { _addTouchListener();};
     CC_DEPRECATED_ATTRIBUTE int executeScriptTouchHandler(EventTouch::EventCode eventType, Touch* touch, Event* event);
     CC_DEPRECATED_ATTRIBUTE int executeScriptTouchesHandler(EventTouch::EventCode eventType, const std::vector<Touch*>& touches, Event* event);
 
@@ -223,7 +228,7 @@ public:
     virtual void setOpacityModifyRGB(bool bValue) override { return Layer::setOpacityModifyRGB(bValue); }
     virtual bool isOpacityModifyRGB() const override { return Layer::isOpacityModifyRGB(); }
 
-CC_CONSTRUCTOR_ACCESS:
+protected:
     __LayerRGBA();
     virtual ~__LayerRGBA() {}
 
@@ -241,6 +246,9 @@ All features from Layer are valid, plus the following new features:
 - RGB colors
 */
 class CC_DLL LayerColor : public Layer, public BlendProtocol
+#ifdef EMSCRIPTEN
+, public GLBufferedNode
+#endif // EMSCRIPTEN
 {
 public:
     /** creates a fullscreen black layer */
@@ -262,7 +270,7 @@ public:
     //
     // Overrides
     //
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
 
     virtual void setContentSize(const Size & var) override;
     /** BlendFunction. Conforms to BlendProtocol protocol */
@@ -291,7 +299,7 @@ CC_CONSTRUCTOR_ACCESS:
     bool initWithColor(const Color4B& color);
 
 protected:
-    void onDraw(const Mat4& transform, uint32_t flags);
+    void onDraw(const Mat4& transform, bool transformUpdated);
 
     virtual void updateColor() override;
 

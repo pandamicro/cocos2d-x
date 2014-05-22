@@ -26,13 +26,12 @@
 #define __UIRICHTEXT_H__
 
 #include "ui/UIWidget.h"
-#include "ui/GUIExport.h"
 
 NS_CC_BEGIN
 
 namespace ui {
     
-class CC_GUI_DLL RichElement : public Ref
+class RichElement : public Ref
 {
 public:
     enum class Type
@@ -52,7 +51,7 @@ protected:
     friend class RichText;
 };
     
-class CC_GUI_DLL RichElementText : public RichElement
+class RichElementText : public RichElement
 {
 public:
     RichElementText(){_type = Type::TEXT;};
@@ -67,7 +66,7 @@ protected:
     
 };
     
-class CC_GUI_DLL RichElementImage : public RichElement
+class RichElementImage : public RichElement
 {
 public:
     RichElementImage(){_type = Type::IMAGE;};
@@ -81,7 +80,7 @@ protected:
     friend class RichText;
 };
     
-class CC_GUI_DLL RichElementCustomNode : public RichElement
+class RichElementCustomNode : public RichElement
 {
 public:
     RichElementCustomNode(){_type = Type::CUSTOM;};
@@ -93,7 +92,7 @@ protected:
     friend class RichText;
 };
     
-class CC_GUI_DLL RichText : public Widget
+class RichText : public Widget
 {
 public:
     RichText();
@@ -103,10 +102,10 @@ public:
     void pushBackElement(RichElement* element);
     void removeElement(int index);
     void removeElement(RichElement* element);
-
+    virtual void visit(cocos2d::Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated) override;
     void setVerticalSpace(float space);
     virtual void setAnchorPoint(const Vec2 &pt);
-    virtual Size getVirtualRendererSize() const override;
+    virtual const Size& getVirtualRendererSize() const override;
     void formatText();
     virtual void ignoreContentAdaptWithSize(bool ignore);
     virtual std::string getDescription() const override;
@@ -115,8 +114,6 @@ CC_CONSTRUCTOR_ACCESS:
     virtual bool init() override;
     
 protected:
-    virtual void adaptRenderers();
-
     virtual void initRenderer();
     void pushToContainer(Node* renderer);
     void handleTextRenderer(const std::string& text, const std::string& fontName, float fontSize, const Color3B& color, GLubyte opacity);

@@ -23,6 +23,7 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "cocostudio/CCBatchNode.h"
+#include "cocostudio/CCArmatureDefine.h"
 #include "cocostudio/CCArmature.h"
 #include "cocostudio/CCSkin.h"
 
@@ -37,7 +38,7 @@ namespace cocostudio {
 
 BatchNode *BatchNode::create()
 {
-    BatchNode *batchNode = new (std::nothrow) BatchNode();
+    BatchNode *batchNode = new BatchNode();
     if (batchNode && batchNode->init())
     {
         batchNode->autorelease();
@@ -65,6 +66,16 @@ bool BatchNode::init()
     return ret;
 }
 
+void BatchNode::addChild(Node *pChild)
+{
+    Node::addChild(pChild);
+}
+
+void BatchNode::addChild(Node *child, int zOrder)
+{
+    Node::addChild(child, zOrder);
+}
+
 void BatchNode::addChild(Node *child, int zOrder, int tag)
 {
     Node::addChild(child, zOrder, tag);
@@ -74,21 +85,7 @@ void BatchNode::addChild(Node *child, int zOrder, int tag)
         armature->setBatchNode(this);
         if (_groupCommand == nullptr)
         {
-            _groupCommand = new (std::nothrow) GroupCommand();
-        }
-    }
-}
-
-void BatchNode::addChild(cocos2d::Node *child, int zOrder, const std::string &name)
-{
-    Node::addChild(child, zOrder, name);
-    Armature *armature = dynamic_cast<Armature *>(child);
-    if (armature != nullptr)
-    {
-        armature->setBatchNode(this);
-        if (_groupCommand == nullptr)
-        {
-            _groupCommand = new (std::nothrow) GroupCommand();
+            _groupCommand = new GroupCommand();
         }
     }
 }
@@ -104,34 +101,37 @@ void BatchNode::removeChild(Node* child, bool cleanup)
     Node::removeChild(child, cleanup);
 }
 
-void BatchNode::visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags)
+void BatchNode::visit(Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated)
 {
     // quick return if not visible. children won't be drawn.
-    if (!_visible || !isVisitableByVisitingCamera())
+    if (!_visible)
     {
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    bool dirty = parentTransformUpdated || _transformUpdated;
+    if(dirty)
+        _modelViewTransform = transform(parentTransform);
+    _transformUpdated = false;
 
     // IMPORTANT:
     // To ease the migration to v3.0, we still support the Mat4 stack,
     // but it is deprecated and your code should not rely on it
     Director* director = Director::getInstance();
+    CCASSERT(nullptr != director, "Director is null when seting matrix stack");
     director->pushMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
     director->loadMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW, _modelViewTransform);
 
     sortAllChildren();
-    draw(renderer, _modelViewTransform, flags);
+    draw(renderer, _modelViewTransform, dirty);
 
-    // FIX ME: Why need to set _orderOfArrival to 0??
-    // Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920
-    // setOrderOfArrival(0);
+    // reset for next frame
+    _orderOfArrival = 0;
 
     director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 }
 
-void BatchNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void BatchNode::draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
     if (_children.empty())
     {
@@ -152,14 +152,14 @@ void BatchNode::draw(Renderer *renderer, const Mat4 &transform, uint32_t flags)
                 pushed = true;
             }
         
-            armature->visit(renderer, transform, flags);
+            armature->visit(renderer, transform, transformUpdated);
         }
         else
         {
             renderer->popGroup();
             pushed = false;
             
-            ((Node *)object)->visit(renderer, transform, flags);
+            ((Node *)object)->visit(renderer, transform, transformUpdated);
         }
     }
 }

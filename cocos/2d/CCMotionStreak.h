@@ -27,12 +27,15 @@ THE SOFTWARE.
 #define __CCMOTION_STREAK_H__
 
 #include "base/CCProtocols.h"
+#include "renderer/CCTexture2D.h"
+#include "base/ccTypes.h"
 #include "2d/CCNode.h"
 #include "renderer/CCCustomCommand.h"
+#ifdef EMSCRIPTEN
+#include "CCGLBufferedNode.h"
+#endif // EMSCRIPTEN
 
 NS_CC_BEGIN
-
-class Texture2D;
 
 /**
  * @addtogroup misc_nodes
@@ -43,6 +46,9 @@ class Texture2D;
  Creates a trailing path.
  */
 class CC_DLL MotionStreak : public Node, public TextureProtocol
+#ifdef EMSCRIPTEN
+, public GLBufferedNode
+#endif // EMSCRIPTEN
 {
 public:
     /** creates and initializes a motion streak with fade in seconds, minimum segments, stroke's width, color, texture filename */
@@ -79,7 +85,7 @@ public:
     * @js NA
     * @lua NA
     */
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
     /**
     * @js NA
     * @lua NA
@@ -114,7 +120,7 @@ CC_CONSTRUCTOR_ACCESS:
 
 protected:
     //renderer callback
-    void onDraw(const Mat4 &transform, uint32_t flags);
+    void onDraw(const Mat4 &transform, bool transformUpdated);
 
     bool _fastMode;
     bool _startingPositionInitialized;

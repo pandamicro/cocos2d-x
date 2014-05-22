@@ -30,6 +30,7 @@
 
 #include "base/CCRef.h"
 #include "CCRenderCommand.h"
+#include "CCRenderCommandPool.h"
 
 NS_CC_BEGIN
 
@@ -47,7 +48,7 @@ protected:
     std::unordered_map<int, bool> _groupMapping;
 };
 
-class CC_DLL GroupCommand : public RenderCommand
+class GroupCommand : public RenderCommand
 {
 public:
     GroupCommand();

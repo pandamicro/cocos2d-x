@@ -40,17 +40,17 @@ void CustomImageScene::onEnter()
     //#endif
     MenuItemLabel* pMenuItem = MenuItemLabel::create(label, CC_CALLBACK_1(CustomImageScene::BackCallback, this));
     
-    Menu* pMenu = Menu::create(pMenuItem, nullptr);
+    Menu* pMenu = Menu::create(pMenuItem, NULL);
     
     pMenu->setPosition( Vec2::ZERO );
-    pMenuItem->setPosition(VisibleRect::right().x - 50, VisibleRect::bottom().y + 25);
+    pMenuItem->setPosition( Vec2( VisibleRect::right().x - 50, VisibleRect::bottom().y + 25) );
     
     addChild(pMenu, 1);
 }
 
 void CustomImageScene::runThisTest()
 {
-    Layer* pLayer = new (std::nothrow) CustomImageLayer();
+    Layer* pLayer = new CustomImageLayer();
     addChild(pLayer);
     pLayer->release();
     
@@ -59,7 +59,7 @@ void CustomImageScene::runThisTest()
 
 void CustomImageScene::BackCallback(Ref* pSender)
 {
-    CustomGUITestScene* pScene = new (std::nothrow) CustomGUITestScene();
+    CustomGUITestScene* pScene = new CustomGUITestScene();
     pScene->runThisTest();
     pScene->release();
 }

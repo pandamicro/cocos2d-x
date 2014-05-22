@@ -30,11 +30,10 @@ THE SOFTWARE.
 
 #include "cocostudio/CCArmatureDefine.h"
 #include "cocostudio/CCBone.h"
-#include "cocostudio/CocosStudioExport.h"
 
 namespace cocostudio {
 
-class CC_STUDIO_DLL Skin : public cocos2d::Sprite
+class Skin : public cocos2d::Sprite
 {
 public:
     static Skin *create();
@@ -55,7 +54,7 @@ public:
     cocos2d::Mat4 getNodeToWorldTransform() const override;
     cocos2d::Mat4 getNodeToWorldTransformAR() const;
     
-    virtual void draw(cocos2d::Renderer *renderer, const cocos2d::Mat4 &transform, uint32_t flags) override;
+    virtual void draw(cocos2d::Renderer *renderer, const cocos2d::Mat4 &transform, bool transformUpdated) override;
     
     /**
      *  @js NA

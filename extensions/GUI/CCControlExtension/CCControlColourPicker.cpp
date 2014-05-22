@@ -77,7 +77,6 @@ bool ControlColourPicker::init()
         
         // Add image
         _background=ControlUtils::addSpriteToTargetWithPosAndAnchor("menuColourPanelBackground.png", spriteSheet, Vec2::ZERO, Vec2(0.5f, 0.5f));
-        if(!_background) return false;
         CC_SAFE_RETAIN(_background);
         
         Vec2 backgroundPointZero = _background->getPosition() - Vec2(_background->getContentSize().width / 2, _background->getContentSize().height / 2);
@@ -86,9 +85,9 @@ bool ControlColourPicker::init()
         float hueShift                = 8;
         float colourShift             = 28;
         
-        _huePicker = new (std::nothrow) ControlHuePicker();
+        _huePicker = new ControlHuePicker();
         _huePicker->initWithTargetAndPos(spriteSheet, Vec2(backgroundPointZero.x + hueShift, backgroundPointZero.y + hueShift));
-        _colourPicker = new (std::nothrow) ControlSaturationBrightnessPicker();
+        _colourPicker = new ControlSaturationBrightnessPicker();
         _colourPicker->initWithTargetAndPos(spriteSheet, Vec2(backgroundPointZero.x + colourShift, backgroundPointZero.y + colourShift));
         
         // Setup events
@@ -110,7 +109,7 @@ bool ControlColourPicker::init()
 
 ControlColourPicker* ControlColourPicker::create()
 {
-    ControlColourPicker *pRet = new (std::nothrow) ControlColourPicker();
+    ControlColourPicker *pRet = new ControlColourPicker();
     pRet->init();
     pRet->autorelease();
     return pRet;
@@ -119,7 +118,7 @@ ControlColourPicker* ControlColourPicker::create()
 
 void ControlColourPicker::setColor(const Color3B& color)
 {
-    // FIXME: fixed me if not correct
+    // XXX fixed me if not correct
     Control::setColor(color);
     
     RGBA rgba;
@@ -135,7 +134,7 @@ void ControlColourPicker::setColor(const Color3B& color)
 void ControlColourPicker::setEnabled(bool enabled)
 {
     Control::setEnabled(enabled);
-    if (_huePicker != nullptr)
+    if (_huePicker != NULL)
     {
         _huePicker->setEnabled(enabled);
     }
@@ -167,7 +166,7 @@ void ControlColourPicker::hueSliderValueChanged(Ref * sender, Control::EventType
 
     // Update the value
     RGBA rgb    = ControlUtils::RGBfromHSV(_hsv);
-    // FIXME: fixed me if not correct
+    // XXX fixed me if not correct
     Control::setColor(Color3B((GLubyte)(rgb.r * 255.0f), (GLubyte)(rgb.g * 255.0f), (GLubyte)(rgb.b * 255.0f)));
     
     // Send Control callback
@@ -183,7 +182,7 @@ void ControlColourPicker::colourSliderValueChanged(Ref * sender, Control::EventT
 
      // Update the value
     RGBA rgb    = ControlUtils::RGBfromHSV(_hsv);
-    // FIXME: fixed me if not correct
+    // XXX fixed me if not correct
     Control::setColor(Color3B((GLubyte)(rgb.r * 255.0f), (GLubyte)(rgb.g * 255.0f), (GLubyte)(rgb.b * 255.0f)));
     
     // Send Control callback

@@ -197,7 +197,7 @@ void PhysicsWorld::debugDraw()
 {
     if (_debugDraw == nullptr)
     {
-        _debugDraw = new (std::nothrow) PhysicsDebugDraw(*this);
+        _debugDraw = new PhysicsDebugDraw(*this);
     }
     
     if (_debugDraw && !_bodies.empty())
@@ -418,7 +418,7 @@ PhysicsShape* PhysicsWorld::getShape(const Vec2& point) const
 
 PhysicsWorld* PhysicsWorld::construct(Scene& scene)
 {
-    PhysicsWorld * world = new (std::nothrow) PhysicsWorld();
+    PhysicsWorld * world = new PhysicsWorld();
     if(world && world->init(scene))
     {
         return world;
@@ -432,7 +432,7 @@ bool PhysicsWorld::init(Scene& scene)
 {
     do
     {
-        _info = new (std::nothrow) PhysicsWorldInfo();
+        _info = new PhysicsWorldInfo();
         CC_BREAK_IF(_info == nullptr);
         
         _scene = &scene;
@@ -526,20 +526,18 @@ void PhysicsWorld::updateBodies()
         return;
     }
     
-    // issue #4944, contact callback will be invoked when add/remove body, _delayAddBodies maybe changed, so we need make a copy.
-    auto addCopy = _delayAddBodies;
-    _delayAddBodies.clear();
-    for (auto& body : addCopy)
+    for (auto& body : _delayAddBodies)
     {
         doAddBody(body);
     }
     
-    auto removeCopy = _delayRemoveBodies;
-    _delayRemoveBodies.clear();
-    for (auto& body : removeCopy)
+    for (auto& body : _delayRemoveBodies)
     {
         doRemoveBody(body);
     }
+    
+    _delayAddBodies.clear();
+    _delayRemoveBodies.clear();
 }
 
 void PhysicsWorld::removeBody(int tag)
@@ -670,16 +668,12 @@ void PhysicsWorld::updateJoints()
         return;
     }
     
-    auto addCopy = _delayAddJoints;
-    _delayAddJoints.clear();
-    for (auto joint : addCopy)
+    for (auto joint : _delayAddJoints)
     {
         doAddJoint(joint);
     }
     
-    auto removeCopy = _delayRemoveJoints;
-    _delayRemoveJoints.clear();
-    for (auto joint : removeCopy)
+    for (auto joint : _delayRemoveJoints)
     {
         doRemoveJoint(joint);
         
@@ -688,6 +682,9 @@ void PhysicsWorld::updateJoints()
             delete joint;
         }
     }
+    
+    _delayAddJoints.clear();
+    _delayRemoveJoints.clear();
 }
 
 void PhysicsWorld::removeShape(PhysicsShape* shape)
@@ -879,33 +876,9 @@ void PhysicsWorld::setGravity(const Vect& gravity)
     _info->setGravity(gravity);
 }
 
-void PhysicsWorld::setSubsteps(int steps)
+void PhysicsWorld::update(float delta)
 {
-    if(steps > 0)
-    {
-        _substeps = steps;
-        if (steps > 1)
-        {
-          _updateRate = 1;
-        }
-    }
-}
-
-void PhysicsWorld::step(float delta)
-{
-    if (_autoStep)
-    {
-        CCLOG("Physics Warning: You need to close auto step( setAutoStep(false) ) first");
-    }
-    else
-    {
-        update(delta, true);
-    }
-}
-
-void PhysicsWorld::update(float delta, bool userCall/* = false*/)
-{
-    while (_delayDirty)
+    if (_delayDirty)
     {
         // the updateJoints must run before the updateBodies.
         updateJoints();
@@ -913,31 +886,16 @@ void PhysicsWorld::update(float delta, bool userCall/* = false*/)
         _delayDirty = !(_delayAddBodies.size() == 0 && _delayRemoveBodies.size() == 0 && _delayAddJoints.size() == 0 && _delayRemoveJoints.size() == 0);
     }
     
-    if (userCall)
+    _updateTime += delta;
+    if (++_updateRateCount >= _updateRate)
     {
-        _info->step(delta);
+        _info->step(_updateTime * _speed);
         for (auto& body : _bodies)
         {
-            body->update(delta);
+            body->update(_updateTime * _speed);
         }
-    }
-    else
-    {
-        _updateTime += delta;
-        if (++_updateRateCount >= _updateRate)
-        {
-            const float dt = _updateTime * _speed / _substeps;
-            for (int i = 0; i < _substeps; ++i)
-            {
-                _info->step(dt);
-                for (auto& body : _bodies)
-                {
-                    body->update(dt);
-                }
-            }
-            _updateRateCount = 0;
-            _updateTime = 0.0f;
-        }
+        _updateRateCount = 0;
+        _updateTime = 0.0f;
     }
     
     if (_debugDrawMask != DEBUGDRAW_NONE)
@@ -952,11 +910,9 @@ PhysicsWorld::PhysicsWorld()
 , _updateRate(1)
 , _updateRateCount(0)
 , _updateTime(0.0f)
-, _substeps(1)
 , _info(nullptr)
 , _scene(nullptr)
 , _delayDirty(false)
-, _autoStep(true)
 , _debugDraw(nullptr)
 , _debugDrawMask(DEBUGDRAW_NONE)
 {
@@ -1036,7 +992,7 @@ void PhysicsDebugDraw::drawShape(PhysicsShape& shape)
             {
                 cpPolyShape* poly = (cpPolyShape*)subShape;
                 int num = poly->numVerts;
-                Vec2* seg = new (std::nothrow) Vec2[num];
+                Vec2* seg = new Vec2[num];
                 
                 PhysicsHelper::cpvs2points(poly->tVerts, seg, num);
                 

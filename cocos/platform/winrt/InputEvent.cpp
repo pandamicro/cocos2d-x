@@ -24,7 +24,7 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "InputEvent.h"
-#include "CCGLViewImpl.h"
+#include "CCGLView.h"
 #include "base/CCEventAcceleration.h"
 
 NS_CC_BEGIN
@@ -57,13 +57,13 @@ void PointerEvent::execute()
     switch(m_type)
     {
     case PointerEventType::PointerPressed:
-        GLViewImpl::sharedOpenGLView()->OnPointerPressed(m_args.Get());
+        GLView::sharedOpenGLView()->OnPointerPressed(m_args.Get());
         break;
     case PointerEventType::PointerMoved:
-        GLViewImpl::sharedOpenGLView()->OnPointerMoved(m_args.Get());
+        GLView::sharedOpenGLView()->OnPointerMoved(m_args.Get());
         break;           
     case PointerEventType::PointerReleased:
-        GLViewImpl::sharedOpenGLView()->OnPointerReleased(m_args.Get());
+        GLView::sharedOpenGLView()->OnPointerReleased(m_args.Get());
         break;
     }
 }
@@ -86,12 +86,11 @@ void KeyboardEvent::execute()
     {
     case Cocos2dKeyEvent::Text:
     {
-        char szUtf8[256] = { 0 };
-        int nLen = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR) m_text.Get()->Data(), -1, szUtf8, sizeof(szUtf8), NULL, NULL);
-        IMEDispatcher::sharedDispatcher()->dispatchInsertText(szUtf8, nLen - 1);
+        char szUtf8[8] = { 0 };
+        int nLen = WideCharToMultiByte(CP_UTF8, 0, (LPCWSTR) m_text.Get()->Data(), 1, szUtf8, sizeof(szUtf8), NULL, NULL);
+        IMEDispatcher::sharedDispatcher()->dispatchInsertText(szUtf8, nLen);
         break;
     }
-
     default:
         switch (m_type)
         {
@@ -120,18 +119,8 @@ BackButtonEvent::BackButtonEvent()
 
 void BackButtonEvent::execute()
 {
-    GLViewImpl::sharedOpenGLView()->OnBackKeyPress();
+    GLView::sharedOpenGLView()->OnBackKeyPress();
 }
-
-CustomInputEvent::CustomInputEvent(const std::function<void()>& fun)
-: m_fun(fun)
-{
-}
-void CustomInputEvent::execute()
-{
-    m_fun();
-}
-
 
 
 NS_CC_END

@@ -26,17 +26,14 @@ THE SOFTWARE.
 ****************************************************************************/
 
 #include "2d/CCActionInterval.h"
-
-#include <stdarg.h>
-
 #include "2d/CCSprite.h"
 #include "2d/CCNode.h"
-#include "2d/CCSpriteFrame.h"
+#include "CCStdC.h"
 #include "2d/CCActionInstant.h"
 #include "base/CCDirector.h"
 #include "base/CCEventCustom.h"
-#include "base/CCEventDispatcher.h"
-#include "platform/CCStdC.h"
+
+#include <stdarg.h>
 
 NS_CC_BEGIN
 
@@ -53,22 +50,22 @@ public:
 
 ExtraAction* ExtraAction::create()
 {
-    ExtraAction* ret = new (std::nothrow) ExtraAction();
+    ExtraAction* ret = new ExtraAction();
     if (ret)
     {
         ret->autorelease();
     }
     return ret;
 }
-ExtraAction* ExtraAction::clone() const
+ExtraAction* ExtraAction::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) ExtraAction();
+	auto a = new ExtraAction();
 	a->autorelease();
 	return a;
 }
 
-ExtraAction* ExtraAction::reverse() const
+ExtraAction* ExtraAction::reverse(void) const
 {
     return ExtraAction::create();
 }
@@ -105,7 +102,7 @@ bool ActionInterval::initWithDuration(float d)
     return true;
 }
 
-bool ActionInterval::isDone() const
+bool ActionInterval::isDone(void) const
 {
     return _elapsed >= _duration;
 }
@@ -137,7 +134,7 @@ void ActionInterval::setAmplitudeRate(float amp)
     CCASSERT(0, "");
 }
 
-float ActionInterval::getAmplitudeRate()
+float ActionInterval::getAmplitudeRate(void)
 {
     // Abstract class needs implementation
     CCASSERT(0, "");
@@ -158,7 +155,7 @@ void ActionInterval::startWithTarget(Node *target)
 
 Sequence* Sequence::createWithTwoActions(FiniteTimeAction *actionOne, FiniteTimeAction *actionTwo)
 {
-    Sequence *sequence = new (std::nothrow) Sequence();
+    Sequence *sequence = new Sequence();
     sequence->initWithTwoActions(actionOne, actionTwo);
     sequence->autorelease();
 
@@ -263,10 +260,10 @@ bool Sequence::initWithTwoActions(FiniteTimeAction *actionOne, FiniteTimeAction 
     return true;
 }
 
-Sequence* Sequence::clone() const
+Sequence* Sequence::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Sequence();
+	auto a = new Sequence();
     a->initWithTwoActions(_actions[0]->clone(), _actions[1]->clone() );
 	a->autorelease();
 	return a;
@@ -336,7 +333,7 @@ void Sequence::update(float t)
 	else if(found==0 && _last==1 )
 	{
 		// Reverse mode ?
-		// FIXME: Bug. this case doesn't contemplate when _last==-1, found=0 and in "reverse mode"
+		// XXX: Bug. this case doesn't contemplate when _last==-1, found=0 and in "reverse mode"
 		// since it will require a hack to know if an action is on reverse mode or not.
 		// "step" should be overriden, and the "reverseMode" value propagated to inner Sequences.
 		_actions[1]->update(0);
@@ -369,7 +366,7 @@ Sequence* Sequence::reverse() const
 
 Repeat* Repeat::create(FiniteTimeAction *action, unsigned int times)
 {
-    Repeat* repeat = new (std::nothrow) Repeat();
+    Repeat* repeat = new Repeat();
     repeat->initWithAction(action, times);
     repeat->autorelease();
 
@@ -403,7 +400,7 @@ bool Repeat::initWithAction(FiniteTimeAction *action, unsigned int times)
 Repeat* Repeat::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Repeat();
+	auto a = new Repeat();
 	a->initWithAction( _innerAction->clone(), _times );
 	a->autorelease();
 	return a;
@@ -442,7 +439,7 @@ void Repeat::update(float dt)
 
             _innerAction->stop();
             _innerAction->startWithTarget(_target);
-            _nextDt = _innerAction->getDuration()/_duration * (_total+1);
+            _nextDt += _innerAction->getDuration()/_duration;
         }
 
         // fix for issue #1288, incorrect end value of repeat
@@ -492,7 +489,7 @@ RepeatForever::~RepeatForever()
 
 RepeatForever *RepeatForever::create(ActionInterval *action)
 {
-    RepeatForever *ret = new (std::nothrow) RepeatForever();
+    RepeatForever *ret = new RepeatForever();
     if (ret && ret->initWithAction(action))
     {
         ret->autorelease();
@@ -510,10 +507,10 @@ bool RepeatForever::initWithAction(ActionInterval *action)
     return true;
 }
 
-RepeatForever *RepeatForever::clone() const
+RepeatForever *RepeatForever::clone(void) const
 {
 	// no copy constructor	
-	auto a = new (std::nothrow) RepeatForever();
+	auto a = new RepeatForever();
 	a->initWithAction(_innerAction->clone());
 	a->autorelease();
 	return a;
@@ -531,8 +528,6 @@ void RepeatForever::step(float dt)
     if (_innerAction->isDone())
     {
         float diff = _innerAction->getElapsed() - _innerAction->getDuration();
-        if (diff > _innerAction->getDuration())
-            diff = fmodf(diff, _innerAction->getDuration());
         _innerAction->startWithTarget(_target);
         // to prevent jerk. issue #390, 1247
         _innerAction->step(0.0f);
@@ -636,7 +631,7 @@ Spawn* Spawn::create(const Vector<FiniteTimeAction*>& arrayOfActions)
 
 Spawn* Spawn::createWithTwoActions(FiniteTimeAction *action1, FiniteTimeAction *action2)
 {
-    Spawn *spawn = new (std::nothrow) Spawn();
+    Spawn *spawn = new Spawn();
     spawn->initWithTwoActions(action1, action2);
     spawn->autorelease();
 
@@ -679,7 +674,7 @@ bool Spawn::initWithTwoActions(FiniteTimeAction *action1, FiniteTimeAction *acti
 Spawn* Spawn::clone(void) const
 {
 	// no copy constructor	
-	auto a = new (std::nothrow) Spawn();
+	auto a = new Spawn();
     a->initWithTwoActions(_one->clone(), _two->clone());
 
 	a->autorelease();
@@ -727,57 +722,41 @@ Spawn* Spawn::reverse() const
 // RotateTo
 //
 
-RotateTo* RotateTo::create(float duration, float dstAngle)
+RotateTo* RotateTo::create(float duration, float deltaAngle)
 {
-    RotateTo* rotateTo = new (std::nothrow) RotateTo();
-    rotateTo->initWithDuration(duration, dstAngle, dstAngle);
+    RotateTo* rotateTo = new RotateTo();
+    rotateTo->initWithDuration(duration, deltaAngle);
     rotateTo->autorelease();
 
     return rotateTo;
 }
 
-RotateTo* RotateTo::create(float duration, float dstAngleX, float dstAngleY)
-{
-    RotateTo* rotateTo = new (std::nothrow) RotateTo();
-    rotateTo->initWithDuration(duration, dstAngleX, dstAngleY);
-    rotateTo->autorelease();
-    
-    return rotateTo;
-}
-
-RotateTo* RotateTo::create(float duration, const Vec3& dstAngle3D)
-{
-    RotateTo* rotateTo = new (std::nothrow) RotateTo();
-    rotateTo->initWithDuration(duration, dstAngle3D);
-    rotateTo->autorelease();
-    
-    return rotateTo;
-}
-
-RotateTo::RotateTo()
-: _is3D(false)
-{
-}
-
-bool RotateTo::initWithDuration(float duration, float dstAngleX, float dstAngleY)
+bool RotateTo::initWithDuration(float duration, float deltaAngle)
 {
     if (ActionInterval::initWithDuration(duration))
     {
-        _dstAngle.x = dstAngleX;
-        _dstAngle.y = dstAngleY;
-        
+        _dstAngleX = _dstAngleY = deltaAngle;
         return true;
     }
-    
+
     return false;
 }
 
-bool RotateTo::initWithDuration(float duration, const Vec3& dstAngle3D)
+RotateTo* RotateTo::create(float duration, float deltaAngleX, float deltaAngleY)
+{
+    RotateTo* rotateTo = new RotateTo();
+    rotateTo->initWithDuration(duration, deltaAngleX, deltaAngleY);
+    rotateTo->autorelease();
+    
+    return rotateTo;
+}
+
+bool RotateTo::initWithDuration(float duration, float deltaAngleX, float deltaAngleY)
 {
     if (ActionInterval::initWithDuration(duration))
     {
-        _dstAngle = dstAngle3D;
-        _is3D = true;
+        _dstAngleX = deltaAngleX;
+        _dstAngleY = deltaAngleY;
         
         return true;
     }
@@ -788,91 +767,67 @@ bool RotateTo::initWithDuration(float duration, const Vec3& dstAngle3D)
 RotateTo* RotateTo::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) RotateTo();
-    if(_is3D)
-	   a->initWithDuration(_duration, _dstAngle);
-    else
-        a->initWithDuration(_duration, _dstAngle.x, _dstAngle.y);
+	auto a = new RotateTo();
+	a->initWithDuration(_duration, _dstAngleX, _dstAngleY);
 	a->autorelease();
 	return a;
-}
-
-void RotateTo::calculateAngles(float &startAngle, float &diffAngle, float dstAngle)
-{
-    if (startAngle > 0)
-    {
-        startAngle = fmodf(startAngle, 360.0f);
-    }
-    else
-    {
-        startAngle = fmodf(startAngle, -360.0f);
-    }
-
-    diffAngle = dstAngle - startAngle;
-    if (diffAngle > 180)
-    {
-        diffAngle -= 360;
-    }
-    if (diffAngle < -180)
-    {
-        diffAngle += 360;
-    }
 }
 
 void RotateTo::startWithTarget(Node *target)
 {
     ActionInterval::startWithTarget(target);
     
-    if (_is3D)
+    // Calculate X
+    _startAngleX = target->getRotationSkewX();
+    if (_startAngleX > 0)
     {
-        _startAngle = _target->getRotation3D();
+        _startAngleX = fmodf(_startAngleX, 360.0f);
     }
     else
     {
-        _startAngle.x = _target->getRotationSkewX();
-        _startAngle.y = _target->getRotationSkewY();
+        _startAngleX = fmodf(_startAngleX, -360.0f);
     }
 
-    calculateAngles(_startAngle.x, _diffAngle.x, _dstAngle.x);
-    calculateAngles(_startAngle.y, _diffAngle.y, _dstAngle.y);
-    calculateAngles(_startAngle.z, _diffAngle.z, _dstAngle.z);
+    _diffAngleX = _dstAngleX - _startAngleX;
+    if (_diffAngleX > 180)
+    {
+        _diffAngleX -= 360;
+    }
+    if (_diffAngleX < -180)
+    {
+        _diffAngleX += 360;
+    }
+    
+    //Calculate Y: It's duplicated from calculating X since the rotation wrap should be the same
+    _startAngleY = _target->getRotationSkewY();
+
+    if (_startAngleY > 0)
+    {
+        _startAngleY = fmodf(_startAngleY, 360.0f);
+    }
+    else
+    {
+        _startAngleY = fmodf(_startAngleY, -360.0f);
+    }
+
+    _diffAngleY = _dstAngleY - _startAngleY;
+    if (_diffAngleY > 180)
+    {
+        _diffAngleY -= 360;
+    }
+
+    if (_diffAngleY < -180)
+    {
+        _diffAngleY += 360;
+    }
 }
 
 void RotateTo::update(float time)
 {
     if (_target)
     {
-        if(_is3D)
-        {
-            _target->setRotation3D(Vec3(
-                _startAngle.x + _diffAngle.x * time,
-                _startAngle.y + _diffAngle.y * time,
-                _startAngle.z + _diffAngle.z * time
-            ));
-        }
-        else
-        {
-#if CC_USE_PHYSICS
-            if (_startAngle.x == _startAngle.y && _diffAngle.x == _diffAngle.y)
-            {
-                _target->setRotation(_startAngle.x + _diffAngle.x * time);
-            }
-            else
-            {
-                // _startAngle.x != _startAngle.y || _diffAngle.x != _diffAngle.y
-                if (_target->getPhysicsBody() != nullptr)
-                {
-                    CCLOG("RotateTo WARNING: PhysicsBody doesn't support skew rotation");
-                }
-                
-                _target->setRotationSkewX(_startAngle.x + _diffAngle.x * time);
-                _target->setRotationSkewY(_startAngle.y + _diffAngle.y * time);
-            }
-#else
-            _target->setRotationSkewX(_startAngle.x + _diffAngle.x * time);
-            _target->setRotationSkewY(_startAngle.y + _diffAngle.y * time);
-#endif // CC_USE_PHYSICS
-        }
+        _target->setRotationSkewX(_startAngleX + _diffAngleX * time);
+        _target->setRotationSkewY(_startAngleY + _diffAngleY * time);
     }
 }
 
@@ -888,7 +843,7 @@ RotateTo *RotateTo::reverse() const
 
 RotateBy* RotateBy::create(float duration, float deltaAngle)
 {
-    RotateBy *rotateBy = new (std::nothrow) RotateBy();
+    RotateBy *rotateBy = new RotateBy();
     rotateBy->initWithDuration(duration, deltaAngle);
     rotateBy->autorelease();
 
@@ -897,7 +852,7 @@ RotateBy* RotateBy::create(float duration, float deltaAngle)
 
 RotateBy* RotateBy::create(float duration, float deltaAngleX, float deltaAngleY)
 {
-    RotateBy *rotateBy = new (std::nothrow) RotateBy();
+    RotateBy *rotateBy = new RotateBy();
     rotateBy->initWithDuration(duration, deltaAngleX, deltaAngleY);
     rotateBy->autorelease();
     
@@ -906,7 +861,7 @@ RotateBy* RotateBy::create(float duration, float deltaAngleX, float deltaAngleY)
 
 RotateBy* RotateBy::create(float duration, const Vec3& deltaAngle3D)
 {
-    RotateBy *rotateBy = new (std::nothrow) RotateBy();
+    RotateBy *rotateBy = new RotateBy();
     rotateBy->initWithDuration(duration, deltaAngle3D);
     rotateBy->autorelease();
 
@@ -922,7 +877,7 @@ bool RotateBy::initWithDuration(float duration, float deltaAngle)
 {
     if (ActionInterval::initWithDuration(duration))
     {
-        _deltaAngle.x = _deltaAngle.y = deltaAngle;
+        _angleZ_X = _angleZ_Y = deltaAngle;
         return true;
     }
 
@@ -933,8 +888,8 @@ bool RotateBy::initWithDuration(float duration, float deltaAngleX, float deltaAn
 {
     if (ActionInterval::initWithDuration(duration))
     {
-        _deltaAngle.x = deltaAngleX;
-        _deltaAngle.y = deltaAngleY;
+        _angleZ_X = deltaAngleX;
+        _angleZ_Y = deltaAngleY;
         return true;
     }
     
@@ -945,7 +900,7 @@ bool RotateBy::initWithDuration(float duration, const Vec3& deltaAngle3D)
 {
     if (ActionInterval::initWithDuration(duration))
     {
-        _deltaAngle = deltaAngle3D;
+        _angle3D = deltaAngle3D;
         _is3D = true;
         return true;
     }
@@ -954,14 +909,14 @@ bool RotateBy::initWithDuration(float duration, const Vec3& deltaAngle3D)
 }
 
 
-RotateBy* RotateBy::clone() const
+RotateBy* RotateBy::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) RotateBy();
+	auto a = new RotateBy();
     if(_is3D)
-        a->initWithDuration(_duration, _deltaAngle);
+        a->initWithDuration(_duration, _angle3D);
     else
-        a->initWithDuration(_duration, _deltaAngle.x, _deltaAngle.y);
+        a->initWithDuration(_duration, _angleZ_X, _angleZ_Y);
 	a->autorelease();
 	return a;
 }
@@ -971,50 +926,32 @@ void RotateBy::startWithTarget(Node *target)
     ActionInterval::startWithTarget(target);
     if(_is3D)
     {
-        _startAngle = target->getRotation3D();
+        _startAngle3D = target->getRotation3D();
     }
     else
     {
-        _startAngle.x = target->getRotationSkewX();
-        _startAngle.y = target->getRotationSkewY();
+        _startAngleZ_X = target->getRotationSkewX();
+        _startAngleZ_Y = target->getRotationSkewY();
     }
 }
 
 void RotateBy::update(float time)
 {
-    // FIXME: shall I add % 360
+    // XXX: shall I add % 360
     if (_target)
     {
         if(_is3D)
         {
             Vec3 v;
-            v.x = _startAngle.x + _deltaAngle.x * time;
-            v.y = _startAngle.y + _deltaAngle.y * time;
-            v.z = _startAngle.z + _deltaAngle.z * time;
+            v.x = _startAngle3D.x + _angle3D.x * time;
+            v.y = _startAngle3D.y + _angle3D.y * time;
+            v.z = _startAngle3D.z + _angle3D.z * time;
             _target->setRotation3D(v);
         }
         else
         {
-#if CC_USE_PHYSICS
-            if (_startAngle.x == _startAngle.y && _deltaAngle.x == _deltaAngle.y)
-            {
-                _target->setRotation(_startAngle.x + _deltaAngle.x * time);
-            }
-            else
-            {
-                // _startAngle.x != _startAngle.y || _deltaAngle.x != _deltaAngle.y
-                if (_target->getPhysicsBody() != nullptr)
-                {
-                    CCLOG("RotateBy WARNING: PhysicsBody doesn't support skew rotation");
-                }
-                
-                _target->setRotationSkewX(_startAngle.x + _deltaAngle.x * time);
-                _target->setRotationSkewY(_startAngle.y + _deltaAngle.y * time);
-            }
-#else
-            _target->setRotationSkewX(_startAngle.x + _deltaAngle.x * time);
-            _target->setRotationSkewY(_startAngle.y + _deltaAngle.y * time);
-#endif // CC_USE_PHYSICS
+            _target->setRotationSkewX(_startAngleZ_X + _angleZ_X * time);
+            _target->setRotationSkewY(_startAngleZ_Y + _angleZ_Y * time);
         }
     }
 }
@@ -1024,15 +961,12 @@ RotateBy* RotateBy::reverse() const
     if(_is3D)
     {
         Vec3 v;
-        v.x = - _deltaAngle.x;
-        v.y = - _deltaAngle.y;
-        v.z = - _deltaAngle.z;
+        v.x = - _angle3D.x;
+        v.y = - _angle3D.y;
+        v.z = - _angle3D.z;
         return RotateBy::create(_duration, v);
     }
-    else
-    {
-        return RotateBy::create(_duration, -_deltaAngle.x, -_deltaAngle.y);
-    }
+    return RotateBy::create(_duration, -_angleZ_X, -_angleZ_Y);
 }
 
 //
@@ -1041,7 +975,7 @@ RotateBy* RotateBy::reverse() const
 
 MoveBy* MoveBy::create(float duration, const Vec2& deltaPosition)
 {
-    MoveBy *ret = new (std::nothrow) MoveBy();
+    MoveBy *ret = new MoveBy();
     ret->initWithDuration(duration, deltaPosition);
     ret->autorelease();
 
@@ -1059,10 +993,10 @@ bool MoveBy::initWithDuration(float duration, const Vec2& deltaPosition)
     return false;
 }
 
-MoveBy* MoveBy::clone() const
+MoveBy* MoveBy::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) MoveBy();
+	auto a = new MoveBy();
     a->initWithDuration(_duration, _positionDelta);
 	a->autorelease();
 	return a;
@@ -1103,7 +1037,7 @@ void MoveBy::update(float t)
 
 MoveTo* MoveTo::create(float duration, const Vec2& position)
 {
-    MoveTo *ret = new (std::nothrow) MoveTo();
+    MoveTo *ret = new MoveTo();
     ret->initWithDuration(duration, position);
     ret->autorelease();
 
@@ -1121,10 +1055,10 @@ bool MoveTo::initWithDuration(float duration, const Vec2& position)
     return false;
 }
 
-MoveTo* MoveTo::clone() const
+MoveTo* MoveTo::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) MoveTo();
+	auto a = new MoveTo();
     a->initWithDuration(_duration, _endPosition);
 	a->autorelease();
 	return a;
@@ -1142,7 +1076,7 @@ void MoveTo::startWithTarget(Node *target)
 //
 SkewTo* SkewTo::create(float t, float sx, float sy)
 {
-    SkewTo *skewTo = new (std::nothrow) SkewTo();
+    SkewTo *skewTo = new SkewTo();
     if (skewTo)
     {
         if (skewTo->initWithDuration(t, sx, sy))
@@ -1173,10 +1107,10 @@ bool SkewTo::initWithDuration(float t, float sx, float sy)
     return bRet;
 }
 
-SkewTo* SkewTo::clone() const
+SkewTo* SkewTo::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) SkewTo();
+	auto a = new SkewTo();
 	a->initWithDuration(_duration, _endSkewX, _endSkewY);
 	a->autorelease();
 	return a;
@@ -1260,7 +1194,7 @@ SkewTo::SkewTo()
 //
 SkewBy* SkewBy::create(float t, float sx, float sy)
 {
-    SkewBy *skewBy = new (std::nothrow) SkewBy();
+    SkewBy *skewBy = new SkewBy();
     if (skewBy)
     {
         if (skewBy->initWithDuration(t, sx, sy))
@@ -1279,7 +1213,7 @@ SkewBy* SkewBy::create(float t, float sx, float sy)
 SkewBy * SkewBy::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) SkewBy();
+	auto a = new SkewBy();
 	a->initWithDuration(_duration, _skewX, _skewY);
 	a->autorelease();
 	return a;
@@ -1320,7 +1254,7 @@ SkewBy* SkewBy::reverse() const
 
 JumpBy* JumpBy::create(float duration, const Vec2& position, float height, int jumps)
 {
-    JumpBy *jumpBy = new (std::nothrow) JumpBy();
+    JumpBy *jumpBy = new JumpBy();
     jumpBy->initWithDuration(duration, position, height, jumps);
     jumpBy->autorelease();
 
@@ -1343,10 +1277,10 @@ bool JumpBy::initWithDuration(float duration, const Vec2& position, float height
     return false;
 }
 
-JumpBy* JumpBy::clone() const
+JumpBy* JumpBy::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) JumpBy();
+	auto a = new JumpBy();
 	a->initWithDuration(_duration, _delta, _height, _jumps);
 	a->autorelease();
 	return a;
@@ -1396,17 +1330,17 @@ JumpBy* JumpBy::reverse() const
 
 JumpTo* JumpTo::create(float duration, const Vec2& position, float height, int jumps)
 {
-    JumpTo *jumpTo = new (std::nothrow) JumpTo();
+    JumpTo *jumpTo = new JumpTo();
     jumpTo->initWithDuration(duration, position, height, jumps);
     jumpTo->autorelease();
 
     return jumpTo;
 }
 
-JumpTo* JumpTo::clone() const
+JumpTo* JumpTo::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) JumpTo();
+	auto a = new JumpTo();
     a->initWithDuration(_duration, _delta, _height, _jumps);
 	a->autorelease();
 	return a;
@@ -1442,7 +1376,7 @@ static inline float bezierat( float a, float b, float c, float d, float t )
 
 BezierBy* BezierBy::create(float t, const ccBezierConfig& c)
 {
-    BezierBy *bezierBy = new (std::nothrow) BezierBy();
+    BezierBy *bezierBy = new BezierBy();
     bezierBy->initWithDuration(t, c);
     bezierBy->autorelease();
 
@@ -1466,10 +1400,10 @@ void BezierBy::startWithTarget(Node *target)
     _previousPosition = _startPosition = target->getPosition();
 }
 
-BezierBy* BezierBy::clone() const
+BezierBy* BezierBy::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) BezierBy();
+	auto a = new BezierBy();
 	a->initWithDuration(_duration, _config);
 	a->autorelease();
 	return a;
@@ -1507,7 +1441,7 @@ void BezierBy::update(float time)
     }
 }
 
-BezierBy* BezierBy::reverse() const
+BezierBy* BezierBy::reverse(void) const
 {
     ccBezierConfig r;
 
@@ -1525,7 +1459,7 @@ BezierBy* BezierBy::reverse() const
 
 BezierTo* BezierTo::create(float t, const ccBezierConfig& c)
 {
-    BezierTo *bezierTo = new (std::nothrow) BezierTo();
+    BezierTo *bezierTo = new BezierTo();
     bezierTo->initWithDuration(t, c);
     bezierTo->autorelease();
 
@@ -1543,10 +1477,10 @@ bool BezierTo::initWithDuration(float t, const ccBezierConfig &c)
     return false;
 }
 
-BezierTo* BezierTo::clone() const
+BezierTo* BezierTo::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) BezierTo();
+	auto a = new BezierTo();
 	a->initWithDuration(_duration, _toConfig);
 	a->autorelease();
 	return a;
@@ -1572,7 +1506,7 @@ BezierTo* BezierTo::reverse() const
 //
 ScaleTo* ScaleTo::create(float duration, float s)
 {
-    ScaleTo *scaleTo = new (std::nothrow) ScaleTo();
+    ScaleTo *scaleTo = new ScaleTo();
     scaleTo->initWithDuration(duration, s);
     scaleTo->autorelease();
 
@@ -1581,7 +1515,7 @@ ScaleTo* ScaleTo::create(float duration, float s)
 
 ScaleTo* ScaleTo::create(float duration, float sx, float sy)
 {
-    ScaleTo *scaleTo = new (std::nothrow) ScaleTo();
+    ScaleTo *scaleTo = new ScaleTo();
     scaleTo->initWithDuration(duration, sx, sy);
     scaleTo->autorelease();
 
@@ -1590,7 +1524,7 @@ ScaleTo* ScaleTo::create(float duration, float sx, float sy)
 
 ScaleTo* ScaleTo::create(float duration, float sx, float sy, float sz)
 {
-    ScaleTo *scaleTo = new (std::nothrow) ScaleTo();
+    ScaleTo *scaleTo = new ScaleTo();
     scaleTo->initWithDuration(duration, sx, sy, sz);
     scaleTo->autorelease();
 
@@ -1639,10 +1573,10 @@ bool ScaleTo::initWithDuration(float duration, float sx, float sy, float sz)
     return false;
 }
 
-ScaleTo* ScaleTo::clone() const
+ScaleTo* ScaleTo::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) ScaleTo();
+	auto a = new ScaleTo();
 	a->initWithDuration(_duration, _endScaleX, _endScaleY, _endScaleZ);
 	a->autorelease();
 	return a;
@@ -1682,7 +1616,7 @@ void ScaleTo::update(float time)
 
 ScaleBy* ScaleBy::create(float duration, float s)
 {
-    ScaleBy *scaleBy = new (std::nothrow) ScaleBy();
+    ScaleBy *scaleBy = new ScaleBy();
     scaleBy->initWithDuration(duration, s);
     scaleBy->autorelease();
 
@@ -1691,7 +1625,7 @@ ScaleBy* ScaleBy::create(float duration, float s)
 
 ScaleBy* ScaleBy::create(float duration, float sx, float sy)
 {
-    ScaleBy *scaleBy = new (std::nothrow) ScaleBy();
+    ScaleBy *scaleBy = new ScaleBy();
     scaleBy->initWithDuration(duration, sx, sy, 1.f);
     scaleBy->autorelease();
 
@@ -1700,17 +1634,17 @@ ScaleBy* ScaleBy::create(float duration, float sx, float sy)
 
 ScaleBy* ScaleBy::create(float duration, float sx, float sy, float sz)
 {
-    ScaleBy *scaleBy = new (std::nothrow) ScaleBy();
+    ScaleBy *scaleBy = new ScaleBy();
     scaleBy->initWithDuration(duration, sx, sy, sz);
     scaleBy->autorelease();
 
     return scaleBy;
 }
 
-ScaleBy* ScaleBy::clone() const
+ScaleBy* ScaleBy::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) ScaleBy();
+	auto a = new ScaleBy();
     a->initWithDuration(_duration, _endScaleX, _endScaleY, _endScaleZ);
 	a->autorelease();
 	return a;
@@ -1735,7 +1669,7 @@ ScaleBy* ScaleBy::reverse() const
 
 Blink* Blink::create(float duration, int blinks)
 {
-    Blink *blink = new (std::nothrow) Blink();
+    Blink *blink = new Blink();
     blink->initWithDuration(duration, blinks);
     blink->autorelease();
 
@@ -1770,7 +1704,7 @@ void Blink::startWithTarget(Node *target)
 Blink* Blink::clone(void) const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Blink();
+	auto a = new Blink();
 	a->initWithDuration(_duration, _times);
 	a->autorelease();
 	return a;
@@ -1797,7 +1731,7 @@ Blink* Blink::reverse() const
 
 FadeIn* FadeIn::create(float d)
 {
-    FadeIn* action = new (std::nothrow) FadeIn();
+    FadeIn* action = new FadeIn();
 
     action->initWithDuration(d,255.0f);
     action->autorelease();
@@ -1808,7 +1742,7 @@ FadeIn* FadeIn::create(float d)
 FadeIn* FadeIn::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) FadeIn();
+	auto a = new FadeIn();
     a->initWithDuration(_duration,255.0f);
 	a->autorelease();
 	return a;
@@ -1851,7 +1785,7 @@ void FadeIn::startWithTarget(cocos2d::Node *target)
 
 FadeOut* FadeOut::create(float d)
 {
-    FadeOut* action = new (std::nothrow) FadeOut();
+    FadeOut* action = new FadeOut();
 
     action->initWithDuration(d,0.0f);
     action->autorelease();
@@ -1862,7 +1796,7 @@ FadeOut* FadeOut::create(float d)
 FadeOut* FadeOut::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) FadeOut();
+	auto a = new FadeOut();
     a->initWithDuration(_duration,0.0f);
 	a->autorelease();
 	return a;
@@ -1902,7 +1836,7 @@ FadeTo* FadeOut::reverse() const
 
 FadeTo* FadeTo::create(float duration, GLubyte opacity)
 {
-    FadeTo *fadeTo = new (std::nothrow) FadeTo();
+    FadeTo *fadeTo = new FadeTo();
     fadeTo->initWithDuration(duration, opacity);
     fadeTo->autorelease();
 
@@ -1923,7 +1857,7 @@ bool FadeTo::initWithDuration(float duration, GLubyte opacity)
 FadeTo* FadeTo::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) FadeTo();
+	auto a = new FadeTo();
 	a->initWithDuration(_duration, _toOpacity);
 	a->autorelease();
 	return a;
@@ -1960,7 +1894,7 @@ void FadeTo::update(float time)
 //
 TintTo* TintTo::create(float duration, GLubyte red, GLubyte green, GLubyte blue)
 {
-    TintTo *tintTo = new (std::nothrow) TintTo();
+    TintTo *tintTo = new TintTo();
     tintTo->initWithDuration(duration, red, green, blue);
     tintTo->autorelease();
 
@@ -1981,7 +1915,7 @@ bool TintTo::initWithDuration(float duration, GLubyte red, GLubyte green, GLubyt
 TintTo* TintTo::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) TintTo();
+	auto a = new TintTo();
 	a->initWithDuration(_duration, _to.r, _to.g, _to.b);
 	a->autorelease();
 	return a;
@@ -2019,7 +1953,7 @@ void TintTo::update(float time)
 
 TintBy* TintBy::create(float duration, GLshort deltaRed, GLshort deltaGreen, GLshort deltaBlue)
 {
-    TintBy *tintBy = new (std::nothrow) TintBy();
+    TintBy *tintBy = new TintBy();
     tintBy->initWithDuration(duration, deltaRed, deltaGreen, deltaBlue);
     tintBy->autorelease();
 
@@ -2043,7 +1977,7 @@ bool TintBy::initWithDuration(float duration, GLshort deltaRed, GLshort deltaGre
 TintBy* TintBy::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) TintBy();
+	auto a = new TintBy();
 	a->initWithDuration(_duration, (GLubyte)_deltaR, (GLubyte)_deltaG, (GLubyte)_deltaB);
 	a->autorelease();
 	return a;
@@ -2082,7 +2016,7 @@ TintBy* TintBy::reverse() const
 //
 DelayTime* DelayTime::create(float d)
 {
-    DelayTime* action = new (std::nothrow) DelayTime();
+    DelayTime* action = new DelayTime();
 
     action->initWithDuration(d);
     action->autorelease();
@@ -2093,7 +2027,7 @@ DelayTime* DelayTime::create(float d)
 DelayTime* DelayTime::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) DelayTime();
+	auto a = new DelayTime();
     a->initWithDuration(_duration);
 	a->autorelease();
 	return a;
@@ -2117,7 +2051,7 @@ DelayTime* DelayTime::reverse() const
 ReverseTime* ReverseTime::create(FiniteTimeAction *action)
 {
     // casting to prevent warnings
-    ReverseTime *reverseTime = new (std::nothrow) ReverseTime();
+    ReverseTime *reverseTime = new ReverseTime();
     reverseTime->initWithAction( action->clone() );
     reverseTime->autorelease();
 
@@ -2146,7 +2080,7 @@ bool ReverseTime::initWithAction(FiniteTimeAction *action)
 ReverseTime* ReverseTime::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) ReverseTime();
+	auto a = new ReverseTime();
 	a->initWithAction( _other->clone() );
 	a->autorelease();
 	return a;
@@ -2157,7 +2091,7 @@ ReverseTime::ReverseTime() : _other(nullptr)
 
 }
 
-ReverseTime::~ReverseTime()
+ReverseTime::~ReverseTime(void)
 {
     CC_SAFE_RELEASE(_other);
 }
@@ -2184,7 +2118,7 @@ void ReverseTime::update(float time)
 
 ReverseTime* ReverseTime::reverse() const
 {
-    // FIXME: This looks like a bug
+    // XXX: This looks like a bug
     return (ReverseTime*)_other->clone();
 }
 
@@ -2193,7 +2127,7 @@ ReverseTime* ReverseTime::reverse() const
 //
 Animate* Animate::create(Animation *animation)
 {
-    Animate *animate = new (std::nothrow) Animate();
+    Animate *animate = new Animate();
     animate->initWithAnimation(animation);
     animate->autorelease();
 
@@ -2263,7 +2197,7 @@ void Animate::setAnimation(cocos2d::Animation *animation)
 Animate* Animate::clone() const
 {
 	// no copy constructor
-	auto a = new (std::nothrow) Animate();
+	auto a = new Animate();
 	a->initWithAnimation(_animation->clone());
 	a->autorelease();
 	return a;
@@ -2285,7 +2219,7 @@ void Animate::startWithTarget(Node *target)
     _executedLoops = 0;
 }
 
-void Animate::stop()
+void Animate::stop(void)
 {
     if (_animation->getRestoreOriginalFrame() && _target)
     {
@@ -2328,7 +2262,7 @@ void Animate::update(float t)
             if ( !dict.empty() )
             {
                 if (_frameDisplayedEvent == nullptr)
-                    _frameDisplayedEvent = new (std::nothrow) EventCustom(AnimationFrameDisplayedNotification);
+                    _frameDisplayedEvent = new EventCustom(AnimationFrameDisplayedNotification);
                 
                 _frameDisplayedEventInfo.target = _target;
                 _frameDisplayedEventInfo.userInfo = &dict;
@@ -2385,7 +2319,7 @@ TargetedAction::~TargetedAction()
 
 TargetedAction* TargetedAction::create(Node* target, FiniteTimeAction* action)
 {
-    TargetedAction* p = new (std::nothrow) TargetedAction();
+    TargetedAction* p = new TargetedAction();
     p->initWithTarget(target, action);
     p->autorelease();
     return p;
@@ -2408,17 +2342,17 @@ bool TargetedAction::initWithTarget(Node* target, FiniteTimeAction* action)
 TargetedAction* TargetedAction::clone() const
 {
 	// no copy constructor	
-	auto a = new (std::nothrow) TargetedAction();
+	auto a = new TargetedAction();
     // win32 : use the _other's copy object.
 	a->initWithTarget(_forcedTarget, _action->clone());
 	a->autorelease();
 	return a;
 }
 
-TargetedAction* TargetedAction::reverse() const
+TargetedAction* TargetedAction::reverse(void) const
 {
 	// just reverse the internal action
-	auto a = new (std::nothrow) TargetedAction();
+	auto a = new TargetedAction();
 	a->initWithTarget(_forcedTarget, _action->reverse());
 	a->autorelease();
 	return a;
@@ -2430,7 +2364,7 @@ void TargetedAction::startWithTarget(Node *target)
     _action->startWithTarget(_forcedTarget);
 }
 
-void TargetedAction::stop()
+void TargetedAction::stop(void)
 {
     _action->stop();
 }

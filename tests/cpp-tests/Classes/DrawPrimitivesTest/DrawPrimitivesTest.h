@@ -27,10 +27,10 @@ public:
     
     virtual std::string title() const override;
     virtual std::string subtitle() const override;
-    virtual void draw(Renderer *renderer, const Mat4 &transform, uint32_t flags) override;
+    virtual void draw(Renderer *renderer, const Mat4 &transform, bool transformUpdated) override;
 
 protected:
-    void onDraw(const Mat4 &transform, uint32_t flags);
+    void onDraw(const Mat4 &transform, bool transformUpdated);
     CustomCommand _customCommand;
 };
 

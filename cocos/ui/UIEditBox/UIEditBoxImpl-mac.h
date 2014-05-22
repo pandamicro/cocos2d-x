@@ -23,23 +23,22 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __UIEditBoxIMPLMAC_H__
-#define __UIEditBoxIMPLMAC_H__
+#ifndef __CCEditBoxIMPLMAC_H__
+#define __CCEditBoxIMPLMAC_H__
 
-#include "platform/CCPlatformConfig.h"
+#include "cocos2d.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
 #import <Foundation/Foundation.h>
 #import <AppKit/AppKit.h>
 
-#include "UIEditBoxImpl.h"
+#include "extensions/ExtensionMacros.h"
+#include "CCEditBoxImpl.h"
 
 
-@interface UIEditBoxImplMac : NSObject <NSTextFieldDelegate>
+@interface CCEditBoxImplMac : NSObject <NSTextFieldDelegate>
 {
-    NSTextField* textField_;
-    NSSecureTextField* secureTextField_;
     void* editBox_;
     BOOL editState_;
     NSMutableDictionary* placeholderAttributes_;
@@ -61,11 +60,8 @@
 
 @end
 
+NS_CC_EXT_BEGIN
 
-NS_CC_BEGIN
-
-namespace ui {
-    
 class EditBox;
 
 class EditBoxImplMac : public EditBoxImpl
@@ -122,15 +118,13 @@ private:
     Vec2    _anchorPoint;
     int        _maxTextLength;
     bool       _inRetinaMode;
-    UIEditBoxImplMac*  _sysEdit;
+    CCEditBoxImplMac*  _sysEdit;
 };
 
 
-}
-
-NS_CC_END
+NS_CC_EXT_END
 
 #endif // #if (CC_TARGET_PLATFORM == CC_PLATFORM_MAC)
 
-#endif /* __UIEditBoxIMPLMAC_H__ */
+#endif /* __CCEditBoxIMPLMAC_H__ */
 

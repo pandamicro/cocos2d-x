@@ -23,7 +23,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ****************************************************************************/
-#include "2d/CCLabelTTF.h"
+#include "CCLabelTTF.h"
 #include "2d/CCLabel.h"
 #include "deprecated/CCString.h"
 
@@ -54,7 +54,7 @@ LabelTTF::~LabelTTF()
 
 LabelTTF * LabelTTF::create()
 {
-    LabelTTF * ret = new (std::nothrow) LabelTTF();
+    LabelTTF * ret = new LabelTTF();
     if (ret)
     {
         ret->autorelease();
@@ -70,7 +70,7 @@ LabelTTF* LabelTTF::create(const std::string& string, const std::string& fontNam
                                const Size &dimensions, TextHAlignment hAlignment, 
                                TextVAlignment vAlignment)
 {
-    LabelTTF *ret = new (std::nothrow) LabelTTF();
+    LabelTTF *ret = new LabelTTF();
     if(ret && ret->initWithString(string, fontName, fontSize, dimensions, hAlignment, vAlignment))
     {
         ret->autorelease();
@@ -82,7 +82,7 @@ LabelTTF* LabelTTF::create(const std::string& string, const std::string& fontNam
 
 LabelTTF * LabelTTF::createWithFontDefinition(const std::string& string, FontDefinition &textDefinition)
 {
-    LabelTTF *ret = new (std::nothrow) LabelTTF();
+    LabelTTF *ret = new LabelTTF();
     if(ret && ret->initWithStringAndTextDefinition(string, textDefinition))
     {
         ret->autorelease();
@@ -262,14 +262,14 @@ void LabelTTF::setFlippedY(bool flippedY)
     }
 }
 
-void LabelTTF::visit(Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags)
+void LabelTTF::visit(Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated)
 {
     if (_contentDirty)
     {
         this->setContentSize(_renderLabel->getContentSize());
         _contentDirty = false;
     }
-    Node::visit(renderer,parentTransform, parentFlags);
+    Node::visit(renderer,parentTransform,parentTransformUpdated);
 }
 
 const Size& LabelTTF::getContentSize() const
@@ -280,8 +280,7 @@ const Size& LabelTTF::getContentSize() const
 
 Rect LabelTTF::getBoundingBox() const
 {
-    const_cast<LabelTTF*>(this)->setContentSize(_renderLabel->getContentSize());
-    return Node::getBoundingBox();
+    return _renderLabel->getBoundingBox();
 }
 
 #if defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))

@@ -26,21 +26,21 @@ THE SOFTWARE.
 #define __UIPAGEVIEW_H__
 
 #include "ui/UILayout.h"
-#include "ui/GUIExport.h"
+#include "ui/UIScrollInterface.h"
 
 NS_CC_BEGIN
 
 namespace ui {
 
-typedef enum
+CC_DEPRECATED_ATTRIBUTE typedef enum
 {
     PAGEVIEW_EVENT_TURNING,
 }PageViewEventType;
 
-typedef void (Ref::*SEL_PageViewEvent)(Ref*, PageViewEventType);
+CC_DEPRECATED_ATTRIBUTE typedef void (Ref::*SEL_PageViewEvent)(Ref*, PageViewEventType);
 #define pagevieweventselector(_SELECTOR)(SEL_PageViewEvent)(&_SELECTOR)
 
-class CC_GUI_DLL PageView : public Layout
+class PageView : public Layout , public UIScrollInterface
 {
     
     DECLARE_CLASS_GUI_INFO
@@ -92,7 +92,7 @@ public:
     void addPage(Layout* page);
     
     /**
-     * Insert a page to pageview.
+     * Inert a page to pageview.
      *
      * @param page    page to be added to pageview.
      */
@@ -128,7 +128,6 @@ public:
      */
     ssize_t getCurPageIndex() const;
     
-    
     Vector<Layout*>& getPages();
     
     Layout* getPage(ssize_t index);
@@ -136,6 +135,8 @@ public:
     // event
     CC_DEPRECATED_ATTRIBUTE void addEventListenerPageView(Ref *target, SEL_PageViewEvent selector);
     void addEventListener(const ccPageViewCallback& callback);
+    
+
     
     virtual bool onTouchBegan(Touch *touch, Event *unusedEvent) override;
     virtual void onTouchMoved(Touch *touch, Event *unusedEvent) override;
@@ -149,7 +150,7 @@ public:
      *
      * @see LayoutType
      *
-     * @param type LayoutType
+     * @param LayoutType
      */
     virtual void setLayoutType(Type type) override{};
     
@@ -168,78 +169,59 @@ public:
     virtual std::string getDescription() const override;
 
     virtual void onEnter() override;
-    /**
-     * @brief If you don't specify the value, the pageView will scroll when half pageview width reached
-     */
-    void setCustomScrollThreshold(float threshold);
-    /**
-     *@brief Return user defined scroll page threshold
-     */
-    float getCustomScrollThreshold()const;
-    /**
-     *@brief Set using user defined scroll page threshold or not
-     * If you set it to false, then the default scroll threshold is pageView.width / 2
-     */
-    void setUsingCustomScrollThreshold(bool flag);
-    /**
-     *@brief Query whether we are using user defined scroll page threshold or not
-     */
-    bool isUsingCustomScrollThreshold()const;
 
 CC_CONSTRUCTOR_ACCESS:
     virtual bool init() override;
 
 protected:
+    virtual void addChild(Node * child) override;
+    virtual void addChild(Node * child, int zOrder) override;
+    virtual void addChild(Node* child, int zOrder, int tag) override;
+    virtual void removeChild(Node* widget, bool cleanup = true) override;
+    virtual void removeAllChildren() override;
+    virtual void removeAllChildrenWithCleanup(bool cleanup) override;
+    virtual Vector<Node*>& getChildren() override{return Widget::getChildren();};
+    virtual const Vector<Node*>& getChildren() const override{return Widget::getChildren();};
+    virtual ssize_t getChildrenCount() const override {return Widget::getChildrenCount();};
+    virtual Node * getChildByTag(int tag) override {return Widget::getChildByTag(tag);};
+virtual Widget* getChildByName(const std::string& name) override {return Widget::getChildByName(name);};
 
     Layout* createPage();
-    float getPositionXByIndex(ssize_t idx)const;
-    ssize_t getPageCount()const;
-
+    float getPositionXByIndex(ssize_t idx);
     void updateBoundaryPages();
+    virtual void handlePressLogic(const Vec2 &touchPoint) override;
+    virtual void handleMoveLogic(const Vec2 &touchPoint) override;
+    virtual void handleReleaseLogic(const Vec2 &touchPoint) override;
+    virtual void interceptTouchEvent(int handleState, Widget* sender, const Vec2 &touchPoint) override;
+    virtual void checkChildInfo(int handleState, Widget* sender, const Vec2 &touchPoint) override;
     virtual bool scrollPages(float touchOffset);
     void movePages(float offset);
     void pageTurningEvent();
-    void updateAllPagesSize();
-    void updateAllPagesPosition();
-    void autoScroll(float dt);
-
-    virtual void handleMoveLogic(Touch *touch) ;
-    virtual void handleReleaseLogic(Touch *touch) ;
-    virtual void interceptTouchEvent(TouchEventType event, Widget* sender,Touch *touch) ;
-    
-    
+    void updateChildrenSize();
+    void updateChildrenPosition();
     virtual void onSizeChanged() override;
     virtual Widget* createCloneInstance() override;
     virtual void copySpecialProperties(Widget* model) override;
     virtual void copyClonedWidgetChildren(Widget* model) override;
-
-    virtual void doLayout() override;
-
+    virtual void setClippingEnabled(bool enabled) override {Layout::setClippingEnabled(enabled);};
+    virtual void doLayout() override{if (!_doLayoutDirty){return;} _doLayoutDirty = false;};
 protected:
-    enum class AutoScrollDirection
-    {
-        LEFT,
-        RIGHT
-    };
+    ssize_t _curPageIdx;
+    Vector<Layout*> _pages;
+    TouchDirection _touchMoveDir;
+    float _touchStartLocation;
+    float _touchMoveStartLocation;
+    Vec2 _movePagePoint;
+    Widget* _leftChild;
+    Widget* _rightChild;
+    float _leftBoundary;
+    float _rightBoundary;
     bool _isAutoScrolling;
     float _autoScrollDistance;
     float _autoScrollSpeed;
-    AutoScrollDirection _autoScrollDirection;
-    
-    ssize_t _curPageIdx;
-    Vector<Layout*> _pages;
-
-    TouchDirection _touchMoveDirection;
-   
-    Widget* _leftBoundaryChild;
-    Widget* _rightBoundaryChild;
-    
-    float _leftBoundary;
-    float _rightBoundary;
-    float _customScrollThreshold;
-    bool _usingCustomScrollThreshold;
-
+    int _autoScrollDir;
     float _childFocusCancelOffset;
+
 
     Ref* _pageViewEventListener;
 #if defined(__GNUC__) && ((__GNUC__ >= 4) || ((__GNUC__ == 3) && (__GNUC_MINOR__ >= 1)))

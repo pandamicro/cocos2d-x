@@ -22,34 +22,20 @@ bool UILoadingBarTest_Left::init()
     {
         scheduleUpdate();
         
-        Size widgetSize = _widget->getContentSize();
+        Size widgetSize = _widget->getSize();
         
         // Add the alert
         Text* alert = Text::create("LoadingBar left", "fonts/Marker Felt.ttf", 30);
         alert->setColor(Color3B(159, 168, 176));
-        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
+        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getSize().height * 1.75f));
         _uiLayer->addChild(alert);
         
         // Create the loading bar
         LoadingBar* loadingBar = LoadingBar::create("cocosui/sliderProgress.png");
         loadingBar->setTag(0);
         loadingBar->setPosition(Vec2(widgetSize.width / 2.0f,
-                                      widgetSize.height / 2.0f + loadingBar->getContentSize().height / 4.0f));
-        Button* button = Button::create("cocosui/animationbuttonnormal.png",
-                                        "cocosui/animationbuttonpressed.png");
-        button->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f + 50));
-        button->setTitleText("Click to change direction!");
-        //        button->addTouchEventListener(this, toucheventselector(UIButtonTest::touchEvent));
-        button->addTouchEventListener([=](Ref*, Widget::TouchEventType type){
-            if (type == Widget::TouchEventType::ENDED) {
-                if (loadingBar->getDirection() == LoadingBar::Direction::LEFT) {
-                    loadingBar->setDirection(LoadingBar::Direction::RIGHT);
-                }else{
-                    loadingBar->setDirection(LoadingBar::Direction::LEFT);
-                }
-            }
-        });
-        _uiLayer->addChild(button);
+                                      widgetSize.height / 2.0f + loadingBar->getSize().height / 4.0f));
+        
         _uiLayer->addChild(loadingBar);
         
         return true;
@@ -114,12 +100,12 @@ bool UILoadingBarTest_Right::init()
     {
         scheduleUpdate();
         
-        Size widgetSize = _widget->getContentSize();
+        Size widgetSize = _widget->getSize();
         
         // Add the alert
         Text *alert = Text::create("LoadingBar right", "fonts/Marker Felt.ttf", 30);
         alert->setColor(Color3B(159, 168, 176));
-        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 1.75f));
+        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getSize().height * 1.75f));
         _uiLayer->addChild(alert);
         
         // Create the loading bar
@@ -128,7 +114,7 @@ bool UILoadingBarTest_Right::init()
         loadingBar->setDirection(LoadingBar::Direction::RIGHT);
         
         loadingBar->setPosition(Vec2(widgetSize.width / 2.0f,
-                                      widgetSize.height / 2.0f + loadingBar->getContentSize().height / 4.0f));
+                                      widgetSize.height / 2.0f + loadingBar->getSize().height / 4.0f));
         
         _uiLayer->addChild(loadingBar);
         
@@ -194,12 +180,12 @@ bool UILoadingBarTest_Left_Scale9::init()
     {
         scheduleUpdate();
         
-        Size widgetSize = _widget->getContentSize();
+        Size widgetSize = _widget->getSize();
         
         // Add the alert
         Text* alert = Text::create("LoadingBar left scale9 render", "fonts/Marker Felt.ttf", 20);
         alert->setColor(Color3B(159, 168, 176));
-        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 2.7f));
+        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getSize().height * 2.7f));
         _uiLayer->addChild(alert);
         
         // Create the loading bar
@@ -207,10 +193,10 @@ bool UILoadingBarTest_Left_Scale9::init()
         loadingBar->setTag(0);
         loadingBar->setScale9Enabled(true);
         loadingBar->setCapInsets(Rect(0, 0, 0, 0));
-        loadingBar->setContentSize(Size(300, 13));
+        loadingBar->setSize(Size(300, 13));
         
         loadingBar->setPosition(Vec2(widgetSize.width / 2.0f,
-                                      widgetSize.height / 2.0f + loadingBar->getContentSize().height / 4.0f));
+                                      widgetSize.height / 2.0f + loadingBar->getSize().height / 4.0f));
         
         _uiLayer->addChild(loadingBar);
         
@@ -276,12 +262,12 @@ bool UILoadingBarTest_Right_Scale9::init()
     {
         scheduleUpdate();
         
-        Size widgetSize = _widget->getContentSize();
+        Size widgetSize = _widget->getSize();
         
         // Add the alert
         Text *alert = Text::create("LoadingBar right scale9 render", "fonts/Marker Felt.ttf", 20);
         alert->setColor(Color3B(159, 168, 176));
-        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 2.7f));
+        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getSize().height * 2.7f));
         _uiLayer->addChild(alert);
         
         // Create the loading bar
@@ -289,11 +275,11 @@ bool UILoadingBarTest_Right_Scale9::init()
         loadingBar->setTag(0);
         loadingBar->setScale9Enabled(true);
         loadingBar->setCapInsets(Rect(0, 0, 0, 0));
-        loadingBar->setContentSize(Size(300, 13));
+        loadingBar->setSize(Size(300, 13));
         loadingBar->setDirection(LoadingBar::Direction::RIGHT);
         
         loadingBar->setPosition(Vec2(widgetSize.width / 2.0f,
-                                      widgetSize.height / 2.0f + loadingBar->getContentSize().height / 4.0f));
+                                      widgetSize.height / 2.0f + loadingBar->getSize().height / 4.0f));
         
         _uiLayer->addChild(loadingBar);
         

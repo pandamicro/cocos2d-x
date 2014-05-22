@@ -26,9 +26,10 @@
 #ifndef __CC_RENDERCOMMANDPOOL_H__
 #define __CC_RENDERCOMMANDPOOL_H__
 
+#include <set>
 #include <list>
 
-#include "platform/CCPlatformMacros.h"
+#include "base/CCPlatformMacros.h"
 
 NS_CC_BEGIN
 
@@ -83,7 +84,7 @@ private:
     void AllocateCommands()
     {
         static const int COMMANDS_ALLOCATE_BLOCK_SIZE = 32;
-        T* commands = new (std::nothrow) T[COMMANDS_ALLOCATE_BLOCK_SIZE];
+        T* commands = new T[COMMANDS_ALLOCATE_BLOCK_SIZE];
         _allocatedPoolBlocks.push_back(commands);
         for(int index = 0; index < COMMANDS_ALLOCATE_BLOCK_SIZE; ++index)
         {

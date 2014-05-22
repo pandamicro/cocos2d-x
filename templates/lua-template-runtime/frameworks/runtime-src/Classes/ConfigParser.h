@@ -27,6 +27,7 @@ class ConfigParser
 {
 public:
     static ConfigParser *getInstance(void);
+    void readConfig();
 
     // predefined screen size
     int getScreenSizeCount(void);
@@ -35,13 +36,10 @@ public:
     string getEntryFile();
     rapidjson::Document& getConfigJsonRoot();
     const SimulatorScreenSize getScreenSize(int index);
-    int getConsolePort();
-    int getUploadPort();
     bool isLanscape();
-    bool isWindowTop();
+    bool isInit();
     
 private:
-    void readConfig();
     ConfigParser(void);
     static ConfigParser *s_sharedInstance;
     ScreenSizeArray _screenSizeArray;
@@ -49,9 +47,7 @@ private:
     string _viewName;
     string _entryfile;
     bool _isLandscape;
-    bool _isWindowTop;
-    int _consolePort;
-    int _uploadPort;
+    bool _isInit;
     
     rapidjson::Document _docRootjson;
 };

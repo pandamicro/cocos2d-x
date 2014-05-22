@@ -48,7 +48,7 @@ namespace cocostudio {
 
 Armature *Armature::create()
 {
-    Armature *armature = new (std::nothrow) Armature();
+    Armature *armature = new Armature();
     if (armature && armature->init())
     {
         armature->autorelease();
@@ -61,7 +61,7 @@ Armature *Armature::create()
 
 Armature *Armature::create(const std::string& name)
 {
-    Armature *armature = new (std::nothrow) Armature();
+    Armature *armature = new Armature();
     if (armature && armature->init(name))
     {
         armature->autorelease();
@@ -73,7 +73,7 @@ Armature *Armature::create(const std::string& name)
 
 Armature *Armature::create(const std::string& name, Bone *parentBone)
 {
-    Armature *armature = new (std::nothrow) Armature();
+    Armature *armature = new Armature();
     if (armature && armature->init(name, parentBone))
     {
         armature->autorelease();
@@ -116,13 +116,13 @@ bool Armature::init(const std::string& name)
         removeAllChildren();
 
         CC_SAFE_DELETE(_animation);
-        _animation = new (std::nothrow) ArmatureAnimation();
+        _animation = new ArmatureAnimation();
         _animation->init(this);
 
         _boneDic.clear();
         _topBoneList.clear();
 
-        _blendFunc = BlendFunc::ALPHA_PREMULTIPLIED;
+        _blendFunc = BlendFunc::ALPHA_NON_PREMULTIPLIED;
 
         _name = name;
 
@@ -352,11 +352,6 @@ const Vec2& Armature::getAnchorPointInPoints() const
     return _realAnchorPointInPoints;
 }
 
-const Vec2& Armature::getOffsetPoints() const
-{
-    return _offsetPoint;
-}
-
 void Armature::setAnimation(ArmatureAnimation *animation)
 {
     _animation = animation;
@@ -383,7 +378,7 @@ void Armature::update(float dt)
     _armatureTransformDirty = false;
 }
 
-void Armature::draw(cocos2d::Renderer *renderer, const Mat4 &transform, uint32_t flags)
+void Armature::draw(cocos2d::Renderer *renderer, const Mat4 &transform, bool transformUpdated)
 {
     if (_parentBone == nullptr && _batchNode == nullptr)
     {
@@ -407,34 +402,23 @@ void Armature::draw(cocos2d::Renderer *renderer, const Mat4 &transform, uint32_t
                 Skin *skin = static_cast<Skin *>(node);
                 skin->updateTransform();
                 
-                BlendFunc func = bone->getBlendFunc();
+                bool blendDirty = bone->isBlendDirty();
                 
-                if (func.src != BlendFunc::ALPHA_PREMULTIPLIED.src || func.dst != BlendFunc::ALPHA_PREMULTIPLIED.dst)
+                if (blendDirty)
                 {
                     skin->setBlendFunc(bone->getBlendFunc());
                 }
-                else
-                {
-                    if (_blendFunc == BlendFunc::ALPHA_PREMULTIPLIED && !skin->getTexture()->hasPremultipliedAlpha())
-                    {
-                        skin->setBlendFunc(_blendFunc.ALPHA_NON_PREMULTIPLIED);
-                    }
-                    else
-                    {
-                        skin->setBlendFunc(_blendFunc);
-                    }
-                }
-                skin->draw(renderer, transform, flags);
+                skin->draw(renderer, transform, transformUpdated);
             }
             break;
             case CS_DISPLAY_ARMATURE:
             {
-                node->draw(renderer, transform, flags);
+                node->draw(renderer, transform, transformUpdated);
             }
             break;
             default:
             {
-                node->visit(renderer, transform, flags);
+                node->visit(renderer, transform, transformUpdated);
 //                CC_NODE_DRAW_SETUP();
             }
             break;
@@ -442,7 +426,7 @@ void Armature::draw(cocos2d::Renderer *renderer, const Mat4 &transform, uint32_t
         }
         else if(Node *node = dynamic_cast<Node *>(object))
         {
-            node->visit(renderer, transform, flags);
+            node->visit(renderer, transform, transformUpdated);
 //            CC_NODE_DRAW_SETUP();
         }
     }
@@ -450,14 +434,6 @@ void Armature::draw(cocos2d::Renderer *renderer, const Mat4 &transform, uint32_t
 
 void Armature::onEnter()
 {
-#if CC_ENABLE_SCRIPT_BINDING
-    if (_scriptType == kScriptTypeJavascript)
-    {
-        if (ScriptEngineManager::sendNodeEventToJSExtended(this, kNodeOnEnter))
-            return;
-    }
-#endif
-    
     Node::onEnter();
     scheduleUpdate();
 }
@@ -469,15 +445,18 @@ void Armature::onExit()
 }
 
 
-void Armature::visit(cocos2d::Renderer *renderer, const Mat4 &parentTransform, uint32_t parentFlags)
+void Armature::visit(cocos2d::Renderer *renderer, const Mat4 &parentTransform, bool parentTransformUpdated)
 {
     // quick return if not visible. children won't be drawn.
-    if (!_visible || !isVisitableByVisitingCamera())
+    if (!_visible)
     {
         return;
     }
 
-    uint32_t flags = processParentFlags(parentTransform, parentFlags);
+    bool dirty = parentTransformUpdated || _transformUpdated;
+    if(dirty)
+        _modelViewTransform = transform(parentTransform);
+    _transformUpdated = false;
 
     // IMPORTANT:
     // To ease the migration to v3.0, we still support the Mat4 stack,
@@ -489,11 +468,10 @@ void Armature::visit(cocos2d::Renderer *renderer, const Mat4 &parentTransform, u
 
 
     sortAllChildren();
-    draw(renderer, _modelViewTransform, flags);
+    draw(renderer, _modelViewTransform, dirty);
 
-    // FIX ME: Why need to set _orderOfArrival to 0??
-    // Please refer to https://github.com/cocos2d/cocos2d-x/pull/6920
-    // setOrderOfArrival(0);
+    // reset for next frame
+    _orderOfArrival = 0;
 
     director->popMatrix(MATRIX_STACK_TYPE::MATRIX_STACK_MODELVIEW);
 }
@@ -511,8 +489,6 @@ Rect Armature::getBoundingBox() const
         if (Bone *bone = dynamic_cast<Bone *>(object))
         {
             Rect r = bone->getDisplayManager()->getBoundingBox();
-            if (r.equals(Rect::ZERO)) 
-                continue;
 
             if(first)
             {
@@ -600,7 +576,7 @@ void CCArmature::drawContour()
             const std::vector<Vec2> &vertexList = body->getCalculatedVertexList();
 
             unsigned long length = vertexList.size();
-            Vec2 *points = new (std::nothrow) Vec2[length];
+            Vec2 *points = new Vec2[length];
             for (unsigned long i = 0; i<length; i++)
             {
                 Vec2 p = vertexList.at(i);

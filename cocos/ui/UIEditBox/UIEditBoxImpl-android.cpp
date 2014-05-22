@@ -23,19 +23,16 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#include "UIEditBoxImpl-android.h"
+#include "CCEditBoxImplAndroid.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID)
 
-#include "UIEditBox.h"
+#include "CCEditBox.h"
 #include "jni/Java_org_cocos2dx_lib_Cocos2dxBitmap.h"
 #include "jni/Java_org_cocos2dx_lib_Cocos2dxHelper.h"
-#include "2d/CCLabel.h"
-#include "base/ccUTF8.h"
 
-NS_CC_BEGIN
 
-namespace ui {
+NS_CC_EXT_BEGIN
 
 EditBoxImpl* __createSystemEditBox(EditBox* pEditBox)
 {
@@ -83,7 +80,7 @@ bool EditBoxImplAndroid::initWithSize(const Size& size)
     _labelPlaceHolder->setSystemFontSize(size.height-12);
 	// align the text vertically center
     _labelPlaceHolder->setAnchorPoint(Vec2(0, 0.5f));
-    _labelPlaceHolder->setPosition(CC_EDIT_BOX_PADDING, size.height / 2.0f);
+    _labelPlaceHolder->setPosition(Vec2(CC_EDIT_BOX_PADDING, size.height / 2.0f));
     _labelPlaceHolder->setVisible(false);
     _labelPlaceHolder->setColor(_colPlaceHolder);
     _editBox->addChild(_labelPlaceHolder);
@@ -312,9 +309,7 @@ void EditBoxImplAndroid::closeKeyboard()
 	
 }
 
-}
-
-NS_CC_END
+NS_CC_EXT_END
 
 #endif /* #if (CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID) */
 
