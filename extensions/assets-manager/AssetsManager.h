@@ -46,6 +46,7 @@ class AssetsManager : public Ref
 public:
     
     friend class Downloader;
+    friend int downloadProgressFunc(Downloader::ProgressData *ptr, double totalToDownload, double nowDownloaded, double totalToUpLoad, double nowUpLoaded);
     
     //! Update states
     enum class State
@@ -65,6 +66,7 @@ public:
     
     const static std::string VERSION_ID;
     const static std::string MANIFEST_ID;
+    const static std::string BATCH_UPDATE_ID;
     
     /** @brief Create function for creating a new AssetsManager
      @param manifestUrl   The url for the local manifest file
@@ -126,7 +128,7 @@ protected:
     
     void adjustPath(std::string &path);
     
-    void dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string message = "", std::string assetId = "");
+    void dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string message = "", std::string assetId = "", const CURLcode &curle_code = CURLE_OK, const CURLMcode &curlm_code = CURLM_OK);
     
     void downloadVersion();
     void parseVersion();
