@@ -245,7 +245,7 @@ void AssetsManager::removeDirectory(const std::string& path)
 {
     if (path.size() > 0 && path[path.size() - 1] != '/')
     {
-        CCLOGERROR("Fail to remove directory: invalid path.");
+        CCLOGERROR("Fail to remove directory, invalid path: %s", path.c_str());
         return;
     }
 
@@ -297,7 +297,7 @@ void AssetsManager::renameFile(const std::string &path, const std::string &oldna
 #endif
 }
 
-void AssetsManager::dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string assetId/* = ""*/, std::string message/* = ""*/, const CURLcode &curle_code/* = CURLE_OK*/, const CURLMcode &curlm_code/* = CURLM_OK*/)
+void AssetsManager::dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string assetId/* = ""*/, std::string message/* = ""*/, int curle_code/* = CURLE_OK*/, int curlm_code/* = CURLM_OK*/)
 {
     EventAssetsManager event(_eventName, this, code, _percent, assetId, message, curle_code, curlm_code);
     _eventDispatcher->dispatchEvent(&event);
@@ -441,6 +441,7 @@ void AssetsManager::startUpdate()
         {
             _updateState = State::UPDATING;
             // UPDATE
+            _failedUnits.clear();
             _downloadUnits.clear();
             _totalWaitToDownload = _totalToDownload = 0;
             std::string packageUrl = _remoteManifest->getPackageUrl();
@@ -564,6 +565,24 @@ void AssetsManager::update()
     }
 }
 
+void AssetsManager::updateAssets(const std::unordered_map<std::string, Downloader::DownloadUnit>& assets)
+{
+    if (_updateState != State::UPDATING && _localManifest->isLoaded() && _remoteManifest->isLoaded())
+    {
+        int size = (int)(assets.size());
+        if (size > 0)
+        {
+            _totalWaitToDownload = _totalToDownload = size;
+            _downloader->batchDownloadAsync(assets, BATCH_UPDATE_ID);
+        }
+    }
+}
+
+const std::unordered_map<std::string, Downloader::DownloadUnit>& AssetsManager::getFailedAssets() const
+{
+    return _failedUnits;
+}
+
 
 void AssetsManager::onError(const Downloader::Error &error)
 {
@@ -581,6 +600,13 @@ void AssetsManager::onError(const Downloader::Error &error)
     else
     {
         _totalWaitToDownload--;
+        auto unitIt = _downloadUnits.find(error.customId);
+        // Found unit and add it to failed units
+        if (unitIt != _downloadUnits.end())
+        {
+            Downloader::DownloadUnit unit = unitIt->second;
+            _failedUnits.emplace(unit.customId, unit);
+        }
         dispatchUpdateEvent(EventAssetsManager::EventCode::ERROR_UPDATING, error.customId, error.message, error.curle_code, error.curlm_code);
     }
 }
@@ -612,10 +638,9 @@ void AssetsManager::onSuccess(const std::string &srcUrl, const std::string &cust
     else if (customId == BATCH_UPDATE_ID)
     {
         // Finished with error check
-        if (_downloadUnits.size() > 0)
+        if (_totalWaitToDownload != 0 || _failedUnits.size() != 0)
         {
             _updateState = State::FAIL_TO_UPDATE;
-            destroyDownloadedVersion();
             dispatchUpdateEvent(EventAssetsManager::EventCode::UPDATE_FAILED);
         }
         else
@@ -641,19 +666,19 @@ void AssetsManager::onSuccess(const std::string &srcUrl, const std::string &cust
         _totalWaitToDownload--;
         // Notify asset updated event
         dispatchUpdateEvent(EventAssetsManager::EventCode::ASSET_UPDATED, customId);
-
-        auto unitIt = _downloadUnits.find(customId);
+        
+        auto unitIt = _failedUnits.find(customId);
         // Found unit and delete it
-        if (unitIt != _downloadUnits.end())
+        if (unitIt != _failedUnits.end())
         {
-            // Remove from download unit list
-            _downloadUnits.erase(unitIt);
+            // Remove from failed units list
+            _failedUnits.erase(unitIt);
+        }
 
-            if (_updateState == State::UPDATING) {
-                _percent = 100 * (_totalToDownload - _downloadUnits.size()) / _totalToDownload;
-                // Notify progression event
-                dispatchUpdateEvent(EventAssetsManager::EventCode::UPDATE_PROGRESSION, customId);
-            }
+        if (_updateState == State::UPDATING) {
+            _percent = 100 * (_totalToDownload - _totalWaitToDownload) / _totalToDownload;
+            // Notify progression event
+            dispatchUpdateEvent(EventAssetsManager::EventCode::UPDATE_PROGRESSION, customId);
         }
     }
 }

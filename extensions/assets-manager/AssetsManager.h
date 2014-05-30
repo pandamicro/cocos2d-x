@@ -86,6 +86,14 @@ public:
      */
     void update();
     
+    /** @brief Update a list of assets under the current AssetsManager context
+     */
+    void updateAssets(const std::unordered_map<std::string, Downloader::DownloadUnit>& assets);
+    
+    /** @brief Retrieve all failed assets during the last update
+     */
+    const std::unordered_map<std::string, Downloader::DownloadUnit>& getFailedAssets() const;
+    
     /** @brief Gets the current update state.
      */
     State getState() const;
@@ -128,7 +136,7 @@ protected:
     
     void adjustPath(std::string &path);
     
-    void dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string message = "", std::string assetId = "", const CURLcode &curle_code = CURLE_OK, const CURLMcode &curlm_code = CURLM_OK);
+    void dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string message = "", std::string assetId = "", int curle_code = 0, int curlm_code = 0);
     
     void downloadVersion();
     void parseVersion();
@@ -220,6 +228,9 @@ private:
     
     //! All assets unit to download
     std::unordered_map<std::string, Downloader::DownloadUnit> _downloadUnits;
+    
+    //! All failed units
+    std::unordered_map<std::string, Downloader::DownloadUnit> _failedUnits;
     
     //! Download percent
     float _percent;
