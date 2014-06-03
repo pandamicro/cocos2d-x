@@ -123,17 +123,21 @@ void AssetsManagerLoaderScene::runThisTest()
                 case EventAssetsManager::EventCode::UPDATE_PROGRESSION:
                 {
                     std::string assetId = event->getAssetId();
-                    int percent = event->getPercent();
+                    float percent = event->getPercent();
                     std::string str;
                     if (assetId == AssetsManager::VERSION_ID)
                     {
-                        str = StringUtils::format("Version file: %d", percent) + "%";
+                        str = StringUtils::format("Version file: %.2f", percent) + "%";
                     }
                     else if (assetId == AssetsManager::MANIFEST_ID)
                     {
-                        str = StringUtils::format("Manifest file: %d", percent) + "%";
+                        str = StringUtils::format("Manifest file: %.2f", percent) + "%";
                     }
-                    else str = StringUtils::format("%d", percent) + "%";
+                    else
+                    {
+                        str = StringUtils::format("%.2f", percent) + "%";
+                        CCLOG("%.2f Percent", percent);
+                    }
                     if (this->_progress != nullptr)
                         this->_progress->setString(str);
                 }
@@ -150,7 +154,7 @@ void AssetsManagerLoaderScene::runThisTest()
                 case EventAssetsManager::EventCode::ALREADY_UP_TO_DATE:
                 case EventAssetsManager::EventCode::UPDATE_FINISHED:
                 {
-                    CCLOG("Update finished. %d", event->getEventCode());
+                    CCLOG("Update finished. %s", event->getMessage().c_str());
                     scene = new AssetsManagerTestScene(backgroundPaths[currentId]);
                     Director::getInstance()->replaceScene(scene);
                     scene->release();
@@ -158,7 +162,7 @@ void AssetsManagerLoaderScene::runThisTest()
                     break;
                 case EventAssetsManager::EventCode::UPDATE_FAILED:
                 {
-                    CCLOG("Update failed. %d", event->getEventCode());
+                    CCLOG("Update failed. %s", event->getMessage().c_str());
                     auto assets = _am->getFailedAssets();
                     _am->updateAssets(assets);
                 }
@@ -166,6 +170,11 @@ void AssetsManagerLoaderScene::runThisTest()
                 case EventAssetsManager::EventCode::ERROR_UPDATING:
                 {
                     CCLOG("Asset %s : %s.", event->getAssetId().c_str(), event->getMessage().c_str());
+                }
+                    break;
+                case EventAssetsManager::EventCode::ERROR_DECOMPRESS:
+                {
+                    CCLOG("%s", event->getMessage().c_str());
                 }
                     break;
                 default:

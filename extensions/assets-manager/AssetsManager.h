@@ -118,13 +118,13 @@ CC_CONSTRUCTOR_ACCESS:
     
 protected:
     
-    static void createDirectory(const std::string &path);
+    static bool createDirectory(const std::string &path);
     
-    static void removeDirectory(const std::string &path);
+    static bool removeDirectory(const std::string &path);
     
-    static void removeFile(const std::string &path);
+    static bool removeFile(const std::string &path);
     
-    static void renameFile(const std::string &path, const std::string &oldname, const std::string &name);
+    static bool renameFile(const std::string &path, const std::string &oldname, const std::string &name);
     
     std::string get(const std::string& key) const;
     
@@ -136,15 +136,14 @@ protected:
     
     void adjustPath(std::string &path);
     
-    void dispatchUpdateEvent(EventAssetsManager::EventCode code, std::string message = "", std::string assetId = "", int curle_code = 0, int curlm_code = 0);
+    void dispatchUpdateEvent(EventAssetsManager::EventCode code, const std::string &message = "", const std::string &assetId = "", int curle_code = 0, int curlm_code = 0);
     
     void downloadVersion();
     void parseVersion();
     void downloadManifest();
     void parseManifest();
     void startUpdate();
-// TODO: For next version
-    //bool uncompress();
+    bool decompress(const std::string &filename);
     
     void batchDownload(const std::unordered_map<std::string, Downloader::DownloadUnit> &units);
     
@@ -181,7 +180,7 @@ protected:
      * @js NA
      * @lua NA
      */
-    virtual void onSuccess(const std::string &srcUrl, const std::string &customId);
+    virtual void onSuccess(const std::string &srcUrl, const std::string &storagePath, const std::string &customId);
     
 private:
     
@@ -232,8 +231,23 @@ private:
     //! All failed units
     std::unordered_map<std::string, Downloader::DownloadUnit> _failedUnits;
     
+    //! All files to be decompressed
+    std::vector<std::string> _compressedFiles;
+    
     //! Download percent
     float _percent;
+    
+    //! Indicate whether the total size should be enabled
+    int _totalEnabled;
+    
+    //! Indicate the number of file whose total size have been collected
+    int _sizeCollected;
+    
+    //! Total file size need to be downloaded (sum of all file)
+    double _totalSize;
+    
+    //! Downloaded size for each file
+    std::unordered_map<std::string, double> _downloadedSize;
     
     //! Total number of assets to download
     int _totalToDownload;
