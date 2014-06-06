@@ -86,13 +86,9 @@ public:
      */
     void update();
     
-    /** @brief Update a list of assets under the current AssetsManager context
+    /** @brief Reupdate all failed assets under the current AssetsManager context
      */
-    void updateAssets(const std::unordered_map<std::string, Downloader::DownloadUnit>& assets);
-    
-    /** @brief Retrieve all failed assets during the last update
-     */
-    const std::unordered_map<std::string, Downloader::DownloadUnit>& getFailedAssets() const;
+    void downloadFailedAssets();
     
     /** @brief Gets the current update state.
      */
@@ -145,7 +141,13 @@ protected:
     void startUpdate();
     bool decompress(const std::string &filename);
     
-    void batchDownload(const std::unordered_map<std::string, Downloader::DownloadUnit> &units);
+    /** @brief Update a list of assets under the current AssetsManager context
+     */
+    void updateAssets(const Downloader::DownloadUnits& assets);
+    
+    /** @brief Retrieve all failed assets during the last update
+     */
+    const Downloader::DownloadUnits& getFailedAssets() const;
     
     /** @brief Function for destorying the downloaded version file and manifest file
      */
