@@ -36,7 +36,7 @@ THE SOFTWARE.
 #include "unzip.h"
 
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
-
+#include <io.h>
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -944,20 +944,26 @@ bool FileUtils::writeStringToFile(const std::string& content, const std::string&
 bool FileUtils::isExist(const std::string& path)
 {
     CCASSERT(!path.empty(), "Invalid path");
-    
-	struct stat st;
-	return stat(path.c_str(), &st) == 0;
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+    return _access(path.c_str(), 0) == 0;
+#else
+  	struct stat st;
+  	return stat(path.c_str(), &st) == 0;
+#endif
 }
 
 bool FileUtils::isDirectory(const std::string& dirPath)
 {
     CCASSERT(!dirPath.empty(), "Invalid path");
-    
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+    return GetFileAttributesA(dirPath.c_str()) == FILE_ATTRIBUTE_DIRECTORY;
+#else    
 	struct stat st;
 	if (stat(dirPath.c_str(), &st) == 0)
 		return S_ISDIR(st.st_mode);
 
 	return false;
+#endif
 }
 
 bool FileUtils::createDirectory(const std::string& dirPath)
@@ -966,11 +972,18 @@ bool FileUtils::createDirectory(const std::string& dirPath)
     
     if (isExist(dirPath) && isDirectory(dirPath))
         return false;
-    
+
+#if (CC_TARGET_PLATFORM == CC_PLATFORM_WIN32)
+    if(!CreateDirectoryA(dirPath.c_str(), NULL))
+    {
+        CCLOGERROR("Create directory (%s) failed", dirPath.c_str());
+    }
+#else    
     if (mkdir(dirPath.c_str(), S_IRWXU | S_IRWXG | S_IRWXO) != 0)
     {
         CCLOGERROR("Create directory (%s) failed", dirPath.c_str());
     }
+#endif
     return true;
 }
 
@@ -1025,8 +1038,16 @@ bool FileUtils::createDirectories(const std::string& path)
 #else
     if ((GetFileAttributesA(path.c_str())) == INVALID_FILE_ATTRIBUTES)
     {
-        // TODO: create recursively the path on windows
-        CreateDirectoryA(path.c_str(), 0);
+        subpath = "";
+        for(int i = 0 ; i < dirs.size() ; ++i)
+        {
+            subpath += dirs[i];
+            BOOL ret = CreateDirectoryA(subpath.c_str(), NULL);
+            if (!ret && ERROR_ALREADY_EXISTS != GetLastError())
+            {
+                return false;
+            }
+        }
     }
 #endif
     
