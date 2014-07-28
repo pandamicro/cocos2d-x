@@ -163,6 +163,12 @@ void ScriptEngineManager::destroyInstance()
     }
 }
 
+bool ScriptEngineManager::executeFunctionWithOwner(Ref *owner, const std::string func)
+{
+    auto scriptEngine = getInstance()->getScriptEngine();
+    return scriptEngine->executeFunctionWithOwner(owner, func);
+}
+
 bool ScriptEngineManager::sendNodeEventToJS(Node* node, int action)
 {
     auto scriptEngine = getInstance()->getScriptEngine();

@@ -431,6 +431,8 @@ public:
      */
     virtual int sendEvent(ScriptEvent* evt) = 0;
     
+    virtual bool executeFunctionWithOwner(Ref *owner, const std::string func) = 0;
+    
     /** called by CCAssert to allow scripting engine to handle failed assertions
      * @return true if the assert was handled by the script engine, false otherwise.
      * @js NA
@@ -491,6 +493,8 @@ public:
      * @lua NA
      */
     static void destroyInstance();
+    
+    static bool executeFunctionWithOwner(Ref *owner, const std::string func);
     /**
      * @js NA
      * @lua NA

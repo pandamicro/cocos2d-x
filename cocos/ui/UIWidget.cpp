@@ -472,6 +472,14 @@ void Widget::onSizeChanged()
             widgetChild->updateSizeAndPosition();
         }
     }
+    
+#if CC_ENABLE_SCRIPT_BINDING
+    if (_scriptType == kScriptTypeJavascript)
+    {
+        if (ScriptEngineManager::executeFunctionWithOwner(this, "onSizeChanged"))
+            return;
+    }
+#endif
 }
 
 const Size& Widget::getVirtualRendererSize() const
