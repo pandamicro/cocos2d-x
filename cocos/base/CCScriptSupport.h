@@ -495,6 +495,9 @@ public:
     static void destroyInstance();
     
     static bool executeFunctionToJS(Ref *owner, const std::string func);
+    
+    static bool executeFunctionToJSExtended(Ref *owner, const std::string func);
+    
     /**
      * @js NA
      * @lua NA
