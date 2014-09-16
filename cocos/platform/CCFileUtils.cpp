@@ -755,7 +755,9 @@ std::string FileUtils::fullPathForFilename(const std::string &filename)
         }
     }
     
-    CCLOG("cocos2d: fullPathForFilename: No file found at %s. Possible missing file.", filename.c_str());
+    if(isPopupNotify()){
+        CCLOG("cocos2d: fullPathForFilename: No file found at %s. Possible missing file.", filename.c_str());
+    }
 
     // FIXME: Should it return nullptr ? or an empty string ?
     // The file wasn't found, return the file name passed in.
@@ -912,39 +914,19 @@ std::string FileUtils::getFullPathForDirectoryAndFilename(const std::string& dir
 
 std::string FileUtils::searchFullPathForFilename(const std::string& filename) const
 {
-    // If filename is absolute path, we don't need to consider 'search paths' and 'resolution orders'.
     if (isAbsolutePath(filename))
     {
         return filename;
     }
-    
-    // Already Cached ?
-    auto cacheIter = _fullPathCache.find(filename);
-    if( cacheIter != _fullPathCache.end() )
+    std::string path = const_cast<FileUtils*>(this)->fullPathForFilename(filename);
+    if (0 == path.compare(filename))
     {
-        return cacheIter->second;
+        return "";
     }
-    
-    // Get the new file name.
-    const std::string newFilename( getNewFilename(filename) );
-    
-	std::string fullpath;
-    
-    for (auto searchIt = _searchPathArray.cbegin(); searchIt != _searchPathArray.cend(); ++searchIt)
+    else
     {
-        for (auto resolutionIt = _searchResolutionsOrderArray.cbegin(); resolutionIt != _searchResolutionsOrderArray.cend(); ++resolutionIt)
-        {
-            fullpath = const_cast<FileUtils*>(this)->getPathForFilename(newFilename, *resolutionIt, *searchIt);
-            
-            if (!fullpath.empty())
-            {
-                // Using the filename passed in as key.
-                const_cast<FileUtils*>(this)->_fullPathCache.insert(std::make_pair(filename, fullpath));
-                return fullpath;
-            }
-        }
+        return path;
     }
-    return "";
 }
 
 bool FileUtils::isFileExist(const std::string& filename) const
@@ -975,8 +957,7 @@ bool FileUtils::isDirectoryExistInternal(const std::string& dirPath) const
 	if (stat(dirPath.c_str(), &st) == 0)
     {
         return S_ISDIR(st.st_mode);
-    }
-    
+    }    
 	return false;
 #endif
 #if (CC_TARGET_PLATFORM == CC_PLATFORM_WP8) || (CC_TARGET_PLATFORM == CC_PLATFORM_WINRT)
@@ -1023,7 +1004,6 @@ bool FileUtils::isDirectoryExist(const std::string& dirPath)
             fullpath = *searchIt + dirPath + *resolutionIt;
             if (isDirectoryExistInternal(fullpath))
             {
-                // Using the filename passed in as key.
                 const_cast<FileUtils*>(this)->_fullPathCache.insert(std::make_pair(dirPath, fullpath));
                 return true;
             }
@@ -1189,30 +1169,22 @@ bool FileUtils::removeFile(const std::string &path)
 bool FileUtils::renameFile(const std::string &path, const std::string &oldname, const std::string &name)
 {
     CCASSERT(!path.empty(), "Invalid path");
-    std::string oldPath = path + oldname;
-    std::string newPath = path + name;
     
     // Rename a file
 #if (CC_TARGET_PLATFORM != CC_PLATFORM_WIN32)
-    if (0 != rename(oldPath.c_str(), newPath.c_str()))
+    std::string oldPath = path + oldname;
+    std::string newPath = path + name;
+    if (rename(oldPath.c_str(), newPath.c_str()) != 0)
     {
         CCLOGERROR("Fail to rename file %s to %s !", oldPath.c_str(), newPath.c_str());
         return false;
     }
     return true;
 #else
-    std::regex pat("\/");
-    std::string _old = std::regex_replace(oldPath, pat, "\\");
-    std::string _new = std::regex_replace(newPath, pat, "\\");
-    
-    if(FileUtils::getInstance()->isFileExist(_new))
-    {
-        DeleteFileA(_new.c_str());
-    }
-    
-    MoveFileA(_old.c_str(), _new.c_str());
-    
-    if(0 == GetLastError())
+    std::string command = "ren ";
+    // Path may include space.
+    command += "\"" + path + oldname + "\" \"" + name + "\"";
+	if (WinExec(command.c_str(), SW_HIDE) > 31)
         return true;
     else
         return false;
@@ -1236,7 +1208,7 @@ long FileUtils::getFileSize(const std::string &filepath)
     int result = stat( fullpath.c_str(), &info );
     
     // Check if statistics are valid:
-    if( 0 != result )
+    if( result != 0 )
     {
         // Failed
         return -1;

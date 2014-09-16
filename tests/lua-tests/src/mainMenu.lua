@@ -4,7 +4,6 @@ require "Opengl"
 require "OpenglConstants"
 require "StudioConstants"
 require "GuiConstants"
-require "bitExtend"
 require "src/helper"
 require "src/testResource"
 require "src/VisibleRect"
@@ -14,11 +13,8 @@ require "src/ActionManagerTest/ActionManagerTest"
 require "src/ActionsEaseTest/ActionsEaseTest"
 require "src/ActionsProgressTest/ActionsProgressTest"
 require "src/ActionsTest/ActionsTest"
-require "src/AssetsManagerTest/AssetsManagerTest"
-require "src/BillBoardTest/BillBoardTest"
+require "src/AssetsManagerExTest/AssetsManagerExTest"
 require "src/BugsTest/BugsTest"
-require "src/ByteCodeEncryptTest/ByteCodeEncryptTest"
-require "src/Camera3DTest/Camera3DTest"
 require "src/ClickAndMoveTest/ClickAndMoveTest"
 require "src/CocosDenshionTest/CocosDenshionTest"
 require "src/CocoStudioTest/CocoStudioTest"
@@ -56,21 +52,13 @@ require "src/ZwoptexTest/ZwoptexTest"
 require "src/LuaBridgeTest/LuaBridgeTest"
 require "src/XMLHttpRequestTest/XMLHttpRequestTest"
 require "src/PhysicsTest/PhysicsTest"
-require "src/CaptureScreenTest/CaptureScreenTest"
-require "src/VideoPlayerTest/VideoPlayerTest"
-require "src/FastTiledMapTest/FastTiledMapTest"
-require "src/NewAudioEngineTest/NewAudioEngineTest"
+
 
 local LINE_SPACE = 40
 
 local CurPos = {x = 0, y = 0}
 local BeginPos = {x = 0, y = 0}
 
-local audioEndineSupported = false
-local currPlatform = cc.Application:getInstance():getTargetPlatform()
-if (cc.PLATFORM_OS_MAC == currPlatform or cc.PLATFORM_OS_IPHONE == currPlatform or cc.PLATFORM_OS_IPAD == currPlatform or cc.PLATFORM_OS_ANDROID == currPlatform) then
-    audioEndineSupported = true
-end
 
 local _allTests = {
     { isSupported = true,  name = "Accelerometer"          , create_func=             AccelerometerMain  },
@@ -78,15 +66,10 @@ local _allTests = {
     { isSupported = true,  name = "ActionsEaseTest"        , create_func   =           EaseActionsTest      },
     { isSupported = true,  name = "ActionsProgressTest"    , create_func   =       ProgressActionsTest      },
     { isSupported = true,  name = "ActionsTest"            , create_func   =               ActionsTest      },
-    { isSupported = true,  name = "AssetsManagerTest"      , create_func   =         AssetsManagerTestMain      },
-    { isSupported = audioEndineSupported, name = "AudioEngineTest", create_func = AudioEngineTest},
+    { isSupported = true,  name = "AssetsManagerExTest"      , create_func   =         AssetsManagerExTestMain      },
     { isSupported = false,  name = "Box2dTest"              , create_func=                 Box2dTestMain  },
     { isSupported = false,  name = "Box2dTestBed"           , create_func=              Box2dTestBedMain  },
-    { isSupported = true,  name = "BillBoardTest"           , create_func=              BillBoardTestMain},
     { isSupported = true,  name = "BugsTest"               , create_func=              BugsTestMain      },
-    { isSupported = true,  name = "ByteCodeEncryptTest"     , create_func=       ByteCodeEncryptTestMain  },
-    { isSupported = true,  name = "Camera3DTest"     ,        create_func=       Camera3DTestMain  },
-    { isSupported = true,  name = "CaptureScreenTest"       , create_func   =         CaptureScreenTestMain  },
     { isSupported = false,  name = "ChipmunkAccelTouchTest" , create_func=    ChipmunkAccelTouchTestMain  },
     { isSupported = true,  name = "ClickAndMoveTest"       , create_func   =          ClickAndMoveTest      },
     { isSupported = true,  name = "CocosDenshionTest"      , create_func   =         CocosDenshionTestMain  },
@@ -97,7 +80,6 @@ local _allTests = {
     { isSupported = true,  name = "EffectsTest"            , create_func   =               EffectsTest      },
     { isSupported = true,  name = "EffectAdvancedTest"     , create_func   =        EffectAdvancedTestMain  },
     { isSupported = true,  name = "ExtensionsTest"         , create_func=        ExtensionsTestMain      },
-    { isSupported = true,  name = "FastTiledMapTest"       , create_func   =              FastTiledMapTestMain},
     { isSupported = true,  name = "FontTest"               , create_func   =              FontTestMain      },
     { isSupported = true,  name = "IntervalTest"           , create_func   =              IntervalTestMain  },
     { isSupported = true,  name = "KeypadTest"             , create_func=                KeypadTestMain  }, 
@@ -130,7 +112,6 @@ local _allTests = {
     { isSupported = true,  name = "TouchesTest"            , create_func   =               TouchesTest      },
     { isSupported = true,  name = "TransitionsTest"        , create_func   =           TransitionsTest      },   
     { isSupported = true,  name = "UserDefaultTest"        , create_func=           UserDefaultTestMain  },
-    { isSupported = true,  name = "VideoPlayerTest"        , create_func=           VideoPlayerTestMain  },
     { isSupported = true,  name = "XMLHttpRequestTest"     , create_func   =        XMLHttpRequestTestMain  },
     { isSupported = true,  name = "ZwoptexTest"            , create_func   =               ZwoptexTestMain  }
 }
@@ -186,13 +167,6 @@ function CreateTestMenu()
         if not obj.isSupported then
             testMenuItem:setEnabled(false)
         end
-
-        if obj.name == "VideoPlayerTest" then
-            if cc.PLATFORM_OS_IPHONE ~= targetPlatform and cc.PLATFORM_OS_ANDROID ~= targetPlatform then
-                testMenuItem:setEnabled(false)
-            end
-         end
-
         testMenuItem:registerScriptTapHandler(menuCallback)
         testMenuItem:setPosition(cc.p(s.width / 2, (s.height - (index) * LINE_SPACE)))
         MainMenu:addChild(testMenuItem, index + 10000, index + 10000)

@@ -22,16 +22,18 @@
  THE SOFTWARE.
  ****************************************************************************/
 
-#ifndef __AssetsManager__
-#define __AssetsManager__
+#ifndef __AssetsManagerEx__
+#define __AssetsManagerEx__
 
-#include "CCEventAssetsManager.h"
-
-#include "cocos2d.h"
+#include "base/CCEventDispatcher.h"
+#include "platform/CCFileUtils.h"
+#include "CCEventAssetsManagerEx.h"
 #include "Downloader.h"
 #include "Manifest.h"
 #include "extensions/ExtensionMacros.h"
+#include "extensions/ExtensionExport.h"
 #include "json/document.h"
+
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -41,7 +43,7 @@ NS_CC_EXT_BEGIN
 /**
  * @brief   This class is used to auto update resources, such as pictures or scripts.
  */
-class AssetsManager : public Ref
+class CC_EX_DLL AssetsManagerEx : public Ref
 {
 public:
     
@@ -68,13 +70,13 @@ public:
     const static std::string MANIFEST_ID;
     const static std::string BATCH_UPDATE_ID;
     
-    /** @brief Create function for creating a new AssetsManager
+    /** @brief Create function for creating a new AssetsManagerEx
      @param manifestUrl   The url for the local manifest file
      @param storagePath   The storage path for downloaded assetes
      @warning   The cached manifest in your storage path have higher priority and will be searched first,
-                only if it doesn't exist, AssetsManager will use the given manifestUrl.
+                only if it doesn't exist, AssetsManagerEx will use the given manifestUrl.
      */
-    static AssetsManager* create(const std::string &manifestUrl, const std::string &storagePath);
+    static AssetsManagerEx* create(const std::string &manifestUrl, const std::string &storagePath);
     
     /** @brief  Check out if there is a new version of manifest.
      *          You may use this method before updating, then let user determine whether
@@ -86,7 +88,7 @@ public:
      */
     void update();
     
-    /** @brief Reupdate all failed assets under the current AssetsManager context
+    /** @brief Reupdate all failed assets under the current AssetsManagerEx context
      */
     void downloadFailedAssets();
     
@@ -108,9 +110,9 @@ public:
     
 CC_CONSTRUCTOR_ACCESS:
     
-    AssetsManager(const std::string& manifestUrl, const std::string& storagePath);
+    AssetsManagerEx(const std::string& manifestUrl, const std::string& storagePath);
     
-    virtual ~AssetsManager();
+    virtual ~AssetsManagerEx();
     
 protected:
     
@@ -126,7 +128,7 @@ protected:
     
     void adjustPath(std::string &path);
     
-    void dispatchUpdateEvent(EventAssetsManager::EventCode code, const std::string &message = "", const std::string &assetId = "", int curle_code = 0, int curlm_code = 0);
+    void dispatchUpdateEvent(EventAssetsManagerEx::EventCode code, const std::string &message = "", const std::string &assetId = "", int curle_code = 0, int curlm_code = 0);
     
     void downloadVersion();
     void parseVersion();
@@ -137,7 +139,7 @@ protected:
     bool decompress(const std::string &filename);
     void decompressDownloadedZip();
     
-    /** @brief Update a list of assets under the current AssetsManager context
+    /** @brief Update a list of assets under the current AssetsManagerEx context
      */
     void updateAssets(const Downloader::DownloadUnits& assets);
     
@@ -152,7 +154,7 @@ protected:
     /** @brief  Call back function for error handling,
      the error will then be reported to user's listener registed in addUpdateEventListener
      @param error   The error object contains ErrorCode, message, asset url, asset key
-     @warning AssetsManager internal use only
+     @warning AssetsManagerEx internal use only
      * @js NA
      * @lua NA
      */
@@ -164,7 +166,7 @@ protected:
      @param downloaded  Total size already downloaded for this asset
      @param url         The url of this asset
      @param customId    The key of this asset
-     @warning AssetsManager internal use only
+     @warning AssetsManagerEx internal use only
      * @js NA
      * @lua NA
      */
@@ -174,7 +176,7 @@ protected:
      the success event will then be send to user's listener registed in addUpdateEventListener
      @param srcUrl      The url of this asset
      @param customId    The key of this asset
-     @warning AssetsManager internal use only
+     @warning AssetsManagerEx internal use only
      * @js NA
      * @lua NA
      */
@@ -182,7 +184,7 @@ protected:
     
 private:
     
-    //! The event of the current AssetsManager in event dispatcher
+    //! The event of the current AssetsManagerEx in event dispatcher
     std::string _eventName;
     
     //! Reference to the global event dispatcher
@@ -261,4 +263,4 @@ private:
 
 NS_CC_EXT_END
 
-#endif /* defined(__AssetsManager__) */
+#endif /* defined(__AssetsManagerEx__) */

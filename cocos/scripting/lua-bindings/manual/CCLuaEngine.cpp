@@ -41,7 +41,7 @@ LuaEngine* LuaEngine::getInstance(void)
 {
     if (!_defaultEngine)
     {
-        _defaultEngine = new LuaEngine();
+        _defaultEngine = new (std::nothrow) LuaEngine();
         _defaultEngine->init();
     }
     return _defaultEngine;
@@ -57,9 +57,9 @@ bool LuaEngine::init(void)
 {
     _stack = LuaStack::create();
     _stack->retain();
-    executeScriptFile("DeprecatedEnum.lua");
-    executeScriptFile("DeprecatedClass.lua");
-    executeScriptFile("Deprecated.lua");
+    executeScriptFile("DeprecatedCocos2dClass");
+    executeScriptFile("DeprecatedCocos2dEnum");
+    executeScriptFile("DeprecatedCocos2dFunc");
     return true;
 }
 
@@ -773,9 +773,11 @@ int LuaEngine::handleEvent(ScriptHandlerMgr::HandlerType type,void* data)
                 return handleTableViewEvent(type, data);
             }
             break;
-        case ScriptHandlerMgr::HandlerType::STUDIO_EVENT_LISTENER:
+        case ScriptHandlerMgr::HandlerType::ASSETSMANAGEREX_PROGRESS:
+        case ScriptHandlerMgr::HandlerType::ASSETSMANAGEREX_ERROR:
+        case ScriptHandlerMgr::HandlerType::ASSETSMANAGEREX_SUCCESS:
             {
-                return handleStudioEventListener(type, data);
+                return handleAssetsManagerExEvent(type, data);
             }
             break;
         case ScriptHandlerMgr::HandlerType::ARMATURE_EVENT:
@@ -948,7 +950,7 @@ int LuaEngine::handleTableViewEvent(ScriptHandlerMgr::HandlerType handlerType,vo
     return ret;
 }
 
-int LuaEngine::handleAssetsManagerEvent(ScriptHandlerMgr::HandlerType type,void* data)
+int LuaEngine::handleAssetsManagerExEvent(ScriptHandlerMgr::HandlerType type,void* data)
 {
     if (nullptr == data)
         return 0;
@@ -984,31 +986,6 @@ int LuaEngine::handleAssetsManagerEvent(ScriptHandlerMgr::HandlerType type,void*
 //        default:
 //            break;
 //    }
-    
-    return 0;
-}
-
-int LuaEngine::handleStudioEventListener(ScriptHandlerMgr::HandlerType type,void* data)
-{
-    if (nullptr == data)
-        return 0;
-    
-    BasicScriptData* eventData = static_cast<BasicScriptData*>(data);
-    if (nullptr == eventData->nativeObject || nullptr == eventData->value)
-        return 0;
-    
-    LuaStudioEventListenerData* listenerData = static_cast<LuaStudioEventListenerData*>(eventData->value);
-    
-    int handler = ScriptHandlerMgr::getInstance()->getObjectHandler((void*)eventData->nativeObject, ScriptHandlerMgr::HandlerType::STUDIO_EVENT_LISTENER);
-    
-    if (0 == handler)
-        return 0;
-    
-    _stack->pushObject(listenerData->objTarget, "cc.Ref");
-    _stack->pushInt(listenerData->eventType);
-    
-    _stack->executeFunctionByHandler(handler, 2);
-    _stack->clean();
     
     return 0;
 }
