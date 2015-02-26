@@ -163,6 +163,33 @@ void ScriptEngineManager::destroyInstance()
     }
 }
 
+bool ScriptEngineManager::executeFunctionToJS(Ref *owner, const std::string func)
+{
+    auto scriptEngine = getInstance()->getScriptEngine();
+    if (scriptEngine->isCalledFromScript())
+    {
+        // Should only be invoked at root class of the function
+        scriptEngine->setCalledFromScript(false);
+    }
+    else
+    {
+        return scriptEngine->executeFunctionFromNative(owner, func);
+    }
+    
+    return false;
+}
+
+bool ScriptEngineManager::executeFunctionToJSExtended(Ref *owner, const std::string func)
+{
+    auto scriptEngine = getInstance()->getScriptEngine();
+    if (!scriptEngine->isCalledFromScript())
+    {
+        return scriptEngine->executeFunctionFromNative(owner, func);
+    }
+    
+    return false;
+}
+
 bool ScriptEngineManager::sendNodeEventToJS(Node* node, int action)
 {
     auto scriptEngine = getInstance()->getScriptEngine();

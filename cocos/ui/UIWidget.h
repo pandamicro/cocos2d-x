@@ -596,10 +596,10 @@ CC_CONSTRUCTOR_ACCESS:
      *@return void
      */
     void  dispatchFocusEvent(Widget* widgetLoseFocus, Widget* widgetGetFocus);
-    
-protected:
     //call back function called when size changed.
     virtual void onSizeChanged();
+    
+protected:
 
     //initializes renderer of widget.
     virtual void initRenderer();

@@ -461,6 +461,14 @@ Node* Widget::getVirtualRenderer()
 
 void Widget::onSizeChanged()
 {
+#if CC_ENABLE_SCRIPT_BINDING
+    if (_scriptType == kScriptTypeJavascript)
+    {
+        if (ScriptEngineManager::executeFunctionToJS(this, "onSizeChanged"))
+            return;
+    }
+#endif
+    
     for (auto& child : getChildren())
     {
         Widget* widgetChild = dynamic_cast<Widget*>(child);
