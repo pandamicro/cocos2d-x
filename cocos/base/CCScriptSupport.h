@@ -212,7 +212,8 @@ enum ScriptEventType
     kControlEvent,
     kCommonEvent,
     kComponentEvent,
-    kRestartGame
+    kRestartGame,
+    kResizeEvent
 };
 
 struct BasicScriptData
@@ -339,6 +340,21 @@ struct CommonScriptData
         {
             strncpy(eventSourceClassName, inClassName, 64);
         }
+    }
+};
+
+struct ResizeScriptData {
+    int width;
+    int height;
+    
+    // Constructor
+    /**
+     * @js NA
+     * @lua NA
+     */
+    ResizeScriptData(int width, int height)
+    : width(width), height(height)
+    {
     }
 };
 
