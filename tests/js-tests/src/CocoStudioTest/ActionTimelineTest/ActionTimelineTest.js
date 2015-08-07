@@ -45,7 +45,9 @@ var runActionTimeLineTest;
             node.y = 160;
             node.setScale(0.2);
             this.addChild(node);
-            node.setDebugDrawEnabled(true);
+
+            this.setDebugDraw(node, true);
+
             if (action) {
                 node.runAction(action);
                 action.gotoFrameAndPlay(0, 40, true);
@@ -53,8 +55,15 @@ var runActionTimeLineTest;
 
             this.createMenu(node, action);
         },
-
+        setDebugDraw: function(node, debugFlag) {
+            node.setDebugDrawEnabled(debugFlag);
+            var allBones = node.getAllSubBonesMap();
+            for (var name in allBones) {
+                allBones[name].setDebugDrawEnabled(debugFlag);
+            }
+        },
         createMenu: function(node, action){
+            var self = this;
             var menus = [];
 
             action.addAnimationInfo(new ccs.AnimationInfo("stand", 0, 40));
@@ -64,7 +73,7 @@ var runActionTimeLineTest;
                 {
                     title: "debug",
                     callback: function(){
-                        node.setDebugDrawEnabled(!node.isDebugDrawEnabled());
+                        self.setDebugDraw(node, !node.isDebugDrawEnabled());
                     }
                 },{
                     title: "change animation",
