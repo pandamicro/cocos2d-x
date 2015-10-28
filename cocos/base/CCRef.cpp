@@ -91,6 +91,18 @@ void Ref::release()
 {
     CCASSERT(_referenceCount > 0, "reference count should be greater than 0");
     --_referenceCount;
+    
+#if defined(CC_NATIVE_CONTROL_SCRIPT) && (!CC_NATIVE_CONTROL_SCRIPT)
+    // Only script object is referencing this
+    if (_referenceCount == 1) 
+    {
+        ScriptEngineProtocol* pEngine = ScriptEngineManager::getInstance()->getScriptEngine();
+        if (pEngine != nullptr && pEngine->getScriptType() == kScriptTypeJavascript)
+        {
+            pEngine->removeScriptObjectByObject(this);
+        }
+    }
+#endif
 
     if (_referenceCount == 0)
     {

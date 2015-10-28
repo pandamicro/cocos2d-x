@@ -870,18 +870,18 @@ bool ScriptingCore::log(JSContext* cx, uint32_t argc, jsval *vp)
 
 void ScriptingCore::removeScriptObjectByObject(Ref* pObj)
 {
-#if CC_NATIVE_CONTROL_SCRIPT
     js_proxy_t* nproxy;
     js_proxy_t* jsproxy;
     void *ptr = (void*)pObj;
     nproxy = jsb_get_native_proxy(ptr);
     if (nproxy) {
-        JSContext *cx = ScriptingCore::getInstance()->getGlobalContext();
+        JSContext *cx = getGlobalContext();
         jsproxy = jsb_get_js_proxy(nproxy->obj);
         RemoveObjectRoot(cx, &jsproxy->obj);
+#if CC_NATIVE_CONTROL_SCRIPT
         jsb_remove_proxy(nproxy, jsproxy);
-    }
 #endif
+    }
 }
 
 
